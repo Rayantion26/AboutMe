@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import FloatingLines from './FloatingLines';
 import TextPressure from './TextPressure';
+import ScrollReveal from './ScrollReveal';
 import './App.css';
 
 function App() {
@@ -88,6 +89,21 @@ function App() {
               minFontSize={36}
             />
           </div>
+        </div>
+      </div>
+
+      <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
+        <div style={{ maxWidth: '800px', color: 'white' }}>
+          <ScrollReveal
+            baseOpacity={0}
+            enableBlur={true}
+            baseRotation={5}
+            blurStrength={10}
+          >
+            When does a man die? When he is hit by a bullet? No! When he suffers a disease?
+            No! When he ate a soup made out of a poisonous mushroom?
+            No! A man dies when he is forgotten!
+          </ScrollReveal>
         </div>
       </div>
 
