@@ -172,7 +172,7 @@ function App() {
           </div>
           <div style={{ position: 'relative', height: '100vh', flex: 1, width: '100%' }}>
             <TextPressure
-              text="IN FIVE YEARS??"
+              text="IN 5 YEARS??"
               flex={true}
               alpha={false}
               stroke={true}
