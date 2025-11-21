@@ -3,6 +3,7 @@ import Lenis from 'lenis';
 import FloatingLines from './FloatingLines';
 import TextPressure from './TextPressure';
 import ScrollReveal from './ScrollReveal';
+import ScrollTextType from './ScrollTextType';
 import './App.css';
 
 function App() {
@@ -10,20 +11,46 @@ function App() {
   const [areLinesVisible, setAreLinesVisible] = useState(true);
   const floatingLinesContainerRef = useRef(null);
 
+  const [isScrollLocked, setIsScrollLocked] = useState(false);
+
+  const lenisRef = useRef(null);
+
+  // Prevent native scrolling when locked
   useEffect(() => {
-    // Initialize Lenis for smooth scrolling
+    const handler = (e) => {
+      if (isScrollLocked) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('wheel', handler, { passive: false });
+    window.addEventListener('touchmove', handler, { passive: false });
+    return () => {
+      window.removeEventListener('wheel', handler);
+      window.removeEventListener('touchmove', handler);
+    };
+  }, [isScrollLocked]);
+
+  // Initialize Lenis for smooth scrolling, respecting scroll lock
+  useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 5,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
       gestureDirection: 'vertical',
       smooth: true,
-      mouseMultiplier: 1,
+      mouseMultiplier: 0.08,
       smoothTouch: false,
-      touchMultiplier: 2,
+      touchMultiplier: 1.0,
+      infinite: false,
     });
+    lenisRef.current = lenis;
 
     function raf(time) {
+      if (isScrollLocked) {
+        // Skip Lenis updates while locked
+        requestAnimationFrame(raf);
+        return;
+      }
       lenis.raf(time);
       requestAnimationFrame(raf);
     }
@@ -33,7 +60,17 @@ function App() {
     return () => {
       lenis.destroy();
     };
-  }, []);
+  }, [isScrollLocked]);
+
+  // React to lock changes: stop/start Lenis
+  useEffect(() => {
+    if (!lenisRef.current) return;
+    if (isScrollLocked) {
+      lenisRef.current.stop();
+    } else {
+      lenisRef.current.start();
+    }
+  }, [isScrollLocked]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -81,7 +118,7 @@ function App() {
         <header className="top-bar">
           <div className="logo">TzuChi</div> {/* Placeholder logo like the photo */}
           <div className="center-top"></div>
-          <div className="date-location">Made — 2025/11/21</div>
+          <div className="date-location">Created<br />2025/11/21</div>
         </header>
 
         <main className="center-content">
@@ -97,6 +134,14 @@ function App() {
         {/* Footer or bottom elements could go here */}
         <div></div>
       </div>
+
+      {/* 400px black spacer before Page 2 */}
+      <div style={{
+        width: '100%',
+        height: '800px',
+        backgroundColor: '#000',
+        zIndex: 2
+      }}></div>
 
       <div style={{
         position: 'relative',
@@ -125,7 +170,7 @@ function App() {
               active={true}
             />
           </div>
-          <div style={{ position: 'relative', flex: 1, width: '100%' }}>
+          <div style={{ position: 'relative', height: '100vh', flex: 1, width: '100%' }}>
             <TextPressure
               text="IN FIVE YEARS??"
               flex={true}
@@ -143,18 +188,68 @@ function App() {
         </div>
       </div>
 
+      <div style={{
+        width: '100%',
+        height: '50px',
+        backgroundColor: '#000',
+        zIndex: 2
+      }}>
+      </div>
+
       <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
         <div style={{ maxWidth: '800px', color: 'white' }}>
           <ScrollReveal
-            baseOpacity={0.5}
-            enableBlur={true}
-            baseRotation={10}
-            blurStrength={30}
+            baseOpacity={0.1}
+            enableBlur={false}
+            baseRotation={35}
+            blurStrength={5}
           >
-            nothing like nothing except being alive
+            nothing
           </ScrollReveal>
         </div>
       </div>
+
+      <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '60px' }}>
+        <div style={{ maxWidth: '1000px', color: 'white' }}>
+          <ScrollReveal
+            baseOpacity={0.2}
+            enableBlur={false}
+            baseRotation={15}
+            blurStrength={6}
+          >
+            ---------But as how matthew said---------
+            "Every day, every week, every year of my life, my hero's always 10 years away.
+            I'm never going to be my hero. I'm not going to attain that.
+            I know I'm not, and that's just fine with me, because that keeps me with somebody to keep on chasing."
+            - Matthew McConaughey's
+          </ScrollReveal>
+        </div>
+      </div>
+
+      {/* <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
+        <div style={{ maxWidth: '800px', color: 'white', fontSize: '2.5rem', fontWeight: '300', lineHeight: '1.5' }}>
+          <ScrollTextType
+            text="But as how matthew said."
+            showCursor={true}
+            cursorCharacter="|"
+            style={{ fontSize: '3rem', fontWeight: '200', letterSpacing: '0.03em' }}
+            onLockChange={setIsScrollLocked}
+          />
+        </div>
+      </div>
+
+      <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
+        <div style={{ maxWidth: '800px', color: 'white', fontSize: '2.5rem', fontWeight: '300', lineHeight: '1.5' }}>
+          <ScrollTextType
+            text="But as how matthew said."
+            showCursor={true}
+            cursorCharacter="|"
+            style={{ fontSize: '3rem', fontWeight: '200', letterSpacing: '0.03em' }}
+            onLockChange={setIsScrollLocked}
+          />
+        </div>
+      </div>
+      */}
 
       <div
         ref={floatingLinesContainerRef}

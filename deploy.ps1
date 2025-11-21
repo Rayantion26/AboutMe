@@ -1,5 +1,5 @@
-# Deployment script for GitHub Pages
-Write-Host "Starting deployment..." -ForegroundColor Cyan
+# Deployment script for GitHub Pages - Clean Deploy
+Write-Host "Starting clean deployment..." -ForegroundColor Cyan
 
 # Add Node.js to PATH
 $env:PATH = "C:\Program Files\nodejs;$env:PATH"
@@ -35,14 +35,14 @@ if (-not $gitPath) {
     exit 1
 }
 
-# Step 3: Deploy to GitHub Pages
-Write-Host "Deploying to GitHub Pages..." -ForegroundColor Yellow
-$gitDir = Split-Path $gitPath -Parent
+# Step 3: Clean deploy to GitHub Pages
+Write-Host "Cleaning previous deployments..." -ForegroundColor Yellow
+$gitDir = Split-Path $gitPath -Parent  
 $oldPath = $env:PATH
 $env:PATH = "$gitDir;$env:PATH"
 
-# Deploy with nojekyll and no custom domain
-& "C:\Program Files\nodejs\node.exe" .\node_modules\gh-pages\bin\gh-pages.js -d dist --nojekyll --remove "CNAME"
+# Force a clean deploy with no history or CNAME
+& "C:\Program Files\nodejs\node.exe" .\node_modules\gh-pages\bin\gh-pages.js -d dist --nojekyll --remove "CNAME" --repo "https://github.com/Rayantion26/AboutMe.git" --branch gh-pages --dotfiles true
 
 $deployResult = $LASTEXITCODE
 $env:PATH = $oldPath
@@ -54,3 +54,4 @@ if ($deployResult -ne 0) {
 
 Write-Host "Deployment successful!" -ForegroundColor Green
 Write-Host "Your site should be live at: https://rayantion26.github.io/AboutMe/" -ForegroundColor Cyan
+Write-Host "Note: It may take 1-2 minutes for changes to appear" -ForegroundColor Yellow

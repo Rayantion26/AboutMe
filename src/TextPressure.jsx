@@ -1,3 +1,5 @@
+// Component ported from https://codepen.io/JuanFuentes/full/rgXKGQ
+
 import { useEffect, useRef, useState } from 'react';
 
 const TextPressure = ({
@@ -96,9 +98,18 @@ const TextPressure = ({
     };
 
     useEffect(() => {
+        let resizeTimeout;
+        const debouncedSetSize = () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(setSize, 150);
+        };
+
         setSize();
-        window.addEventListener('resize', setSize);
-        return () => window.removeEventListener('resize', setSize);
+        window.addEventListener('resize', debouncedSetSize);
+        return () => {
+            window.removeEventListener('resize', debouncedSetSize);
+            clearTimeout(resizeTimeout);
+        };
         // eslint-disable-next-line
     }, [scale, text]);
 
@@ -106,7 +117,18 @@ const TextPressure = ({
         if (!active) return;
 
         let rafId;
-        const animate = () => {
+        let lastTime = 0;
+        const targetFPS = 30;
+        const frameInterval = 1000 / targetFPS;
+
+        const animate = (currentTime) => {
+            rafId = requestAnimationFrame(animate);
+
+            const deltaTime = currentTime - lastTime;
+            if (deltaTime < frameInterval) return;
+
+            lastTime = currentTime - (deltaTime % frameInterval);
+
             mouseRef.current.x += (cursorRef.current.x - mouseRef.current.x) / 15;
             mouseRef.current.y += (cursorRef.current.y - mouseRef.current.y) / 15;
 
@@ -139,11 +161,9 @@ const TextPressure = ({
                     span.style.fontVariationSettings = `'wght' ${wght}, 'wdth' ${wdth}, 'ital' ${italVal}`;
                 });
             }
-
-            rafId = requestAnimationFrame(animate);
         };
 
-        animate();
+        rafId = requestAnimationFrame(animate);
         return () => cancelAnimationFrame(rafId);
     }, [width, weight, italic, alpha, chars.length, active]);
 
@@ -216,7 +236,8 @@ const TextPressure = ({
                         data-char={char}
                         style={{
                             display: 'inline-block',
-                            color: stroke ? undefined : textColor
+                            color: stroke ? undefined : textColor,
+                            willChange: 'opacity, font-variation-settings'
                         }}
                     >
                         {char}
