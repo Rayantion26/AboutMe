@@ -41,7 +41,8 @@ $gitDir = Split-Path $gitPath -Parent
 $oldPath = $env:PATH
 $env:PATH = "$gitDir;$env:PATH"
 
-& "C:\Program Files\nodejs\node.exe" .\node_modules\gh-pages\bin\gh-pages.js -d dist
+# Deploy with nojekyll and no custom domain
+& "C:\Program Files\nodejs\node.exe" .\node_modules\gh-pages\bin\gh-pages.js -d dist --nojekyll --remove "CNAME"
 
 $deployResult = $LASTEXITCODE
 $env:PATH = $oldPath
@@ -52,4 +53,4 @@ if ($deployResult -ne 0) {
 }
 
 Write-Host "Deployment successful!" -ForegroundColor Green
-Write-Host "Your site should be live at: https://rayantion.me/AboutMe/" -ForegroundColor Cyan
+Write-Host "Your site should be live at: https://rayantion26.github.io/AboutMe/" -ForegroundColor Cyan
