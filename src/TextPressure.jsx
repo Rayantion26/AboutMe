@@ -19,7 +19,8 @@ const TextPressure = ({
     strokeColor = '#FF0000',
     className = '',
 
-    minFontSize = 24
+    minFontSize = 24,
+    active = true
 }) => {
     const containerRef = useRef(null);
     const titleRef = useRef(null);
@@ -41,6 +42,8 @@ const TextPressure = ({
     };
 
     useEffect(() => {
+        if (!active) return;
+
         const handleMouseMove = e => {
             cursorRef.current.x = e.clientX;
             cursorRef.current.y = e.clientY;
@@ -66,7 +69,7 @@ const TextPressure = ({
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('touchmove', handleTouchMove);
         };
-    }, []);
+    }, [active]);
 
     const setSize = () => {
         if (!containerRef.current || !titleRef.current) return;
@@ -100,6 +103,8 @@ const TextPressure = ({
     }, [scale, text]);
 
     useEffect(() => {
+        if (!active) return;
+
         let rafId;
         const animate = () => {
             mouseRef.current.x += (cursorRef.current.x - mouseRef.current.x) / 15;
@@ -140,7 +145,7 @@ const TextPressure = ({
 
         animate();
         return () => cancelAnimationFrame(rafId);
-    }, [width, weight, italic, alpha, chars.length]);
+    }, [width, weight, italic, alpha, chars.length, active]);
 
     const dynamicClassName = [className, flex ? 'flex' : '', stroke ? 'stroke' : ''].filter(Boolean).join(' ');
 

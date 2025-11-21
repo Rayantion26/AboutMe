@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import FloatingLines from './FloatingLines';
 import TextPressure from './TextPressure';
@@ -6,7 +6,9 @@ import ScrollReveal from './ScrollReveal';
 import './App.css';
 
 function App() {
-  const [linesOpacity, setLinesOpacity] = useState(1);
+  const [textPressureActive, setTextPressureActive] = useState(false);
+  const [areLinesVisible, setAreLinesVisible] = useState(true);
+  const floatingLinesContainerRef = useRef(null);
 
   useEffect(() => {
     // Initialize Lenis for smooth scrolling
@@ -45,12 +47,33 @@ function App() {
       let newOpacity = 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart);
       newOpacity = Math.max(0, Math.min(1, newOpacity));
 
-      setLinesOpacity(newOpacity);
+      // Direct DOM manipulation to avoid React re-renders on every scroll frame
+      if (floatingLinesContainerRef.current) {
+        floatingLinesContainerRef.current.style.opacity = newOpacity;
+        floatingLinesContainerRef.current.style.pointerEvents = newOpacity > 0 ? 'auto' : 'none';
+      }
+
+      // Only update state when crossing the threshold to pause/unpause heavy components
+      if (newOpacity <= 0 && areLinesVisible) {
+        setAreLinesVisible(false);
+      } else if (newOpacity > 0 && !areLinesVisible) {
+        setAreLinesVisible(true);
+      }
+
+      // Activate TextPressure when we are mostly on the second page
+      if (scrollY > windowHeight * 0.8) {
+        setTextPressureActive(true);
+      } else {
+        setTextPressureActive(false);
+      }
     };
 
     window.addEventListener('scroll', handleScroll);
+    // Initial call to set correct state
+    handleScroll();
+
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [areLinesVisible]);
 
   return (
     <>
@@ -99,6 +122,7 @@ function App() {
               textColor="#ffffff"
               strokeColor="#ff0000"
               minFontSize={36}
+              active={true}
             />
           </div>
           <div style={{ position: 'relative', flex: 1, width: '100%' }}>
@@ -113,6 +137,7 @@ function App() {
               textColor="#c8ff81ff"
               strokeColor="#ffffffff"
               minFontSize={36}
+              active={true}
             />
           </div>
         </div>
@@ -131,7 +156,10 @@ function App() {
         </div>
       </div>
 
-      <div style={{ width: '100%', height: '100%', position: 'fixed', top: 0, left: 0, zIndex: 0, opacity: linesOpacity, pointerEvents: linesOpacity > 0 ? 'auto' : 'none', transition: 'opacity 0.1s ease-out' }}>
+      <div
+        ref={floatingLinesContainerRef}
+        style={{ width: '100%', height: '100%', position: 'fixed', top: 0, left: 0, zIndex: 0, transition: 'opacity 0.1s ease-out' }}
+      >
         <FloatingLines
           enabledWaves={['top', 'middle', 'bottom']}
           lineCount={[7, 5, 4]}
@@ -140,6 +168,7 @@ function App() {
           bendStrength={-1}
           interactive={true}
           parallax={true}
+          paused={!areLinesVisible}
         />
       </div>
     </>
