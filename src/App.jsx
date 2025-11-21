@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Lenis from 'lenis';
 import FloatingLines from './FloatingLines';
 import TextPressure from './TextPressure';
 import ScrollReveal from './ScrollReveal';
@@ -6,6 +7,31 @@ import './App.css';
 
 function App() {
   const [linesOpacity, setLinesOpacity] = useState(1);
+
+  useEffect(() => {
+    // Initialize Lenis for smooth scrolling
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      direction: 'vertical',
+      gestureDirection: 'vertical',
+      smooth: true,
+      mouseMultiplier: 1,
+      smoothTouch: false,
+      touchMultiplier: 2,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,14 +121,12 @@ function App() {
       <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
         <div style={{ maxWidth: '800px', color: 'white' }}>
           <ScrollReveal
-            baseOpacity={0}
+            baseOpacity={0.5}
             enableBlur={true}
-            baseRotation={5}
-            blurStrength={10}
+            baseRotation={10}
+            blurStrength={30}
           >
-            When does a man die? When he is hit by a bullet? No! When he suffers a disease?
-            No! When he ate a soup made out of a poisonous mushroom?
-            No! A man dies when he is forgotten!
+            nothing like nothing except being alive
           </ScrollReveal>
         </div>
       </div>
