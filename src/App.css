@@ -99,6 +99,30 @@ h2 {
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
+h3 {
+  font-family: 'Montserrat', monospace;
+  font-style: bold;
+  font-weight: 400;
+  font-size: 2rem;
+  /* Large size like the photo */
+  margin: 0;
+  line-height: 1.2;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+h4 {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 3.5rem;
+  /* Large size like the photo */
+  margin: 0;
+  line-height: 1.2;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
 
 .role {
   font-family: 'Inter', sans-serif;
@@ -111,4 +135,86 @@ h2 {
 /* Hide the detailed text for now to match the landing page vibe */
 .details-hidden {
   display: none;
+}
+
+/* Default styles for ScrollTextType section (Desktop) */
+.scroll-text-section {
+  position: relative;
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  background-color: black;
+  padding: 90px;
+}
+
+.scroll-text-container {
+  max-width: 500px;
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 300;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 20px;
+  }
+
+  .top-bar {
+    font-size: 1rem;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  h2 {
+    font-size: 2.5rem;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+  }
+
+  h4 {
+    font-size: 1.8rem;
+  }
+
+  .role {
+    font-size: 1rem;
+    margin-top: 1rem;
+  }
+
+  /* Adjust ScrollReveal text size on mobile */
+  .scroll-reveal-text {
+    font-size: 1.5rem !important;
+    /* Override inline or other styles if needed */
+  }
+
+  /* ScrollTextType Mobile Alignment */
+  .scroll-text-section {
+    padding: 20px;
+    /* Reduced padding for more space */
+    justify-content: flex-start;
+    /* Align block to start */
+  }
+
+  .scroll-text-container {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .scroll-text-component {
+    text-align: left !important;
+    /* Force left alignment on mobile */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    /* Ensure text wraps normally */
+  }
 }

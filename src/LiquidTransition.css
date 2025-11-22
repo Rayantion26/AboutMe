@@ -1,0 +1,225 @@
+/* LiquidTransition.css */
+
+/* Custom Scrollbar */
+.liquid-page ::-webkit-scrollbar {
+    width: 10px;
+}
+
+.liquid-page ::-webkit-scrollbar-track {
+    background: #111827;
+}
+
+.liquid-page ::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 5px;
+}
+
+.liquid-page ::-webkit-scrollbar-thumb:hover {
+    background: #4B5563;
+}
+
+.liquid-container {
+    background-color: #111827;
+    /* bg-gray-900 */
+    color: white;
+    overflow-x: hidden;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    /* Matching App's font */
+    position: relative;
+}
+
+/* The Block */
+.falling-block {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 150px;
+    height: 150px;
+    background-color: white;
+    border-radius: 24px;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform;
+}
+
+/* The Splash / Water Layer */
+.splash-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 120vh;
+    z-index: 40;
+    pointer-events: none;
+    transform: translateY(105%);
+    will-change: transform;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.wave-svg {
+    display: block;
+    width: 200%;
+    height: 200px;
+    transform-origin: bottom;
+    position: relative;
+    margin-bottom: -1px;
+    fill: white;
+    transform: translateX(0%);
+}
+
+.splash-body {
+    background-color: white;
+    flex-grow: 1;
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* Scrollable Container */
+.scroll-container {
+    position: relative;
+    width: 100%;
+    height: 400vh;
+}
+
+/* Sections */
+.liquid-section {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.section-1 {
+    height: 100vh;
+}
+
+.section-2 {
+    height: 150vh;
+}
+
+.section-3 {
+    height: 100vh;
+    justify-content: flex-end;
+    padding-bottom: 5rem;
+}
+
+/* Typography */
+.liquid-title {
+    font-size: 3rem;
+    /* text-5xl */
+    font-weight: 700;
+    /* font-bold */
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.05em;
+    /* tracking-tighter */
+}
+
+@media (min-width: 768px) {
+    .liquid-title {
+        font-size: 4.5rem;
+        /* md:text-7xl */
+    }
+}
+
+.liquid-subtitle {
+    font-size: 1.25rem;
+    /* text-xl */
+    color: #9ca3af;
+    /* text-gray-400 */
+    max-width: 32rem;
+    /* max-w-lg */
+}
+
+.liquid-h2 {
+    font-size: 1.875rem;
+    /* text-3xl */
+    font-weight: 600;
+    /* font-semibold */
+    margin-bottom: 1rem;
+}
+
+.liquid-p {
+    font-size: 1.125rem;
+    /* text-lg */
+}
+
+.opacity-50 {
+    opacity: 0.5;
+}
+
+/* Final Text */
+.final-text-container {
+    text-align: center;
+    opacity: 0;
+    transition: opacity 300ms;
+    z-index: 60;
+    color: #111827;
+    /* text-gray-900 */
+}
+
+.final-title {
+    font-size: 3.75rem;
+    /* text-6xl */
+    font-weight: 900;
+    /* font-black */
+    margin-bottom: 1rem;
+}
+
+.final-subtitle {
+    font-size: 1.25rem;
+    /* text-xl */
+    font-weight: 500;
+    /* font-medium */
+    margin-bottom: 2rem;
+}
+
+/* Button */
+.reset-button {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid #111827;
+    color: #111827;
+    font-weight: 700;
+    border-radius: 9999px;
+    background-color: transparent;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 1rem;
+}
+
+.reset-button:hover {
+    background-color: #f3f4f6;
+    /* hover:bg-gray-100 */
+}
+
+/* Animation */
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(-25%);
+        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    50% {
+        transform: translateY(0);
+        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+}
+
+.animate-bounce {
+    margin-top: 3rem;
+    color: #6b7280;
+    /* text-gray-500 */
+    animation: bounce 1s infinite;
+}

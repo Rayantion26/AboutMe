@@ -4,6 +4,7 @@ import FloatingLines from './FloatingLines';
 import TextPressure from './TextPressure';
 import ScrollReveal from './ScrollReveal';
 import ScrollTextType from './ScrollTextType';
+import LiquidTransitionEffect from './LiquidTransitionEffect';
 import './App.css';
 
 function App() {
@@ -41,7 +42,7 @@ function App() {
       smooth: true,
       mouseMultiplier: 0.08,
       smoothTouch: false,
-      touchMultiplier: 1.0,
+      touchMultiplier: 1.2,
       infinite: false,
     });
     lenisRef.current = lenis;
@@ -137,10 +138,10 @@ function App() {
         <div></div>
       </div>
 
-      {/* 400px black spacer before Page 2 */}
-      <div style={{
+      {/* Spacer before Page 2 */}
+      <div className="spacer-section" style={{
         width: '100%',
-        height: '800px',
+        minHeight: '80vh', // Responsive height
         backgroundColor: '#000',
         zIndex: 2
       }}></div>
@@ -156,7 +157,7 @@ function App() {
         marginTop: '-20vh', /* Pull it up to overlap */
         paddingTop: '20vh'  /* Compensate for the pull */
       }}>
-        <div style={{ position: 'relative', height: '800px', width: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'relative', minHeight: '80vh', width: '100%', display: 'flex', flexDirection: 'column' }}>
           <div style={{ position: 'relative', flex: 1, width: '100%' }}>
             <TextPressure
               text="MY DREAM"
@@ -233,36 +234,50 @@ function App() {
             baseRotation={5}
             blurStrength={6}
           >
-            <h1>"Every day, every week, every year of my life, my hero's always 10 years away.
+            <h4>"Every day, every week, every year of my life, my hero's always 10 years away.
               <br />
               I'm never going to be my hero. I'm not going to attain that.
               <br />
               I know I'm not, and that's just fine with me, because that keeps me with somebody to keep on chasing."
               <br />
-            </h1>
+              <br />
+            </h4>
             <h3>- Matthew McConaughey's</h3>
           </ScrollReveal>
         </div>
       </div>
 
-      <div style={{ position: 'relative', minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '90px' }}>
-        <div style={{ maxWidth: '500px', color: 'white', fontSize: '2.5rem', fontWeight: '300', lineHeight: '1.5' }}>
+      <div className="scroll-text-section">
+        <div className="scroll-text-container">
           <ScrollTextType
             text="But here's what i've been working on.
-
-
-
-For these past few years
-
-
-or days"
+            
+            For these past few years
+            
+            or days"
             showCursor={true}
             cursorCharacter="|"
-            style={{ fontSize: '3rem', fontWeight: '200', letterSpacing: '0.03em' }}
+            className="scroll-text-component"
+            style={{ fontSize: 'clamp(1.5rem, 5vw, 3rem)', fontWeight: '200', letterSpacing: '0.03em' }}
             onLockChange={setIsScrollLocked}
           />
         </div>
       </div>
+
+      {/* Integrated Liquid Transition */}
+      <LiquidTransitionEffect>
+        <div style={{
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'black'
+        }}>
+          <h1 style={{ fontSize: '4rem', fontWeight: 'bold' }}>Next Page</h1>
+          <p style={{ fontSize: '1.5rem', marginTop: '1rem' }}>Welcome to the white background.</p>
+        </div>
+      </LiquidTransitionEffect>
 
       <div
         ref={floatingLinesContainerRef}

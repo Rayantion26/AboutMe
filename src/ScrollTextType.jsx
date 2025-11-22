@@ -20,6 +20,7 @@ const ScrollTextType = ({
     cursorClassName = '',
     style = {},
     onLockChange,
+    onComplete,
     ...props
 }) => {
     const [displayed, setDisplayed] = useState('');
@@ -54,10 +55,13 @@ const ScrollTextType = ({
         setIsTyping(false);
 
         const ctx = gsap.context(() => {
+            const isMobile = window.innerWidth < 768;
+            const scrollDistance = isMobile ? "+=2000" : "+=8000"; // Shorter scroll for mobile (approx 3 swipes)
+
             ScrollTrigger.create({
                 trigger: el,
                 start: "center center",
-                end: "+=8000", // Increased from 5000 for even slower typing
+                end: scrollDistance,
                 pin: true,
                 scrub: 0,
                 onUpdate: (self) => {
@@ -78,6 +82,9 @@ const ScrollTextType = ({
                     } else {
                         el.style.transform = 'translateY(0)';
                     }
+                },
+                onLeave: () => {
+                    if (onComplete) onComplete();
                 }
             });
         }, containerRef);
