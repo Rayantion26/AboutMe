@@ -5,6 +5,7 @@ import TextPressure from './TextPressure';
 import ScrollReveal from './ScrollReveal';
 import ScrollTextType from './ScrollTextType';
 import LiquidTransitionEffect from './LiquidTransitionEffect';
+import Cubes from './Cubes';
 import './App.css';
 
 function App() {
@@ -12,27 +13,9 @@ function App() {
   const [areLinesVisible, setAreLinesVisible] = useState(true);
   const floatingLinesContainerRef = useRef(null);
   const nothingSectionRef = useRef(null);
-
-  const [isScrollLocked, setIsScrollLocked] = useState(false);
-
   const lenisRef = useRef(null);
 
-  // Prevent native scrolling when locked
-  useEffect(() => {
-    const handler = (e) => {
-      if (isScrollLocked) {
-        e.preventDefault();
-      }
-    };
-    window.addEventListener('wheel', handler, { passive: false });
-    window.addEventListener('touchmove', handler, { passive: false });
-    return () => {
-      window.removeEventListener('wheel', handler);
-      window.removeEventListener('touchmove', handler);
-    };
-  }, [isScrollLocked]);
-
-  // Initialize Lenis for smooth scrolling, respecting scroll lock
+  // Initialize Lenis for smooth scrolling
   useEffect(() => {
     const lenis = new Lenis({
       duration: 5,
@@ -48,70 +31,48 @@ function App() {
     lenisRef.current = lenis;
 
     function raf(time) {
-      if (isScrollLocked) {
-        // Skip Lenis updates while locked
-        requestAnimationFrame(raf);
-        return;
-      }
       lenis.raf(time);
       requestAnimationFrame(raf);
     }
-
     requestAnimationFrame(raf);
 
     return () => {
       lenis.destroy();
     };
-  }, [isScrollLocked]);
+  }, []);
 
-  // React to lock changes: stop/start Lenis
-  useEffect(() => {
-    if (!lenisRef.current) return;
-    if (isScrollLocked) {
-      lenisRef.current.stop();
-    } else {
-      lenisRef.current.start();
-    }
-  }, [isScrollLocked]);
-
+  // Scroll handling for floating lines and other effects
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const windowHeight = window.innerHeight;
 
-      // Fade out completely by the time we scroll 80% of the viewport height
+      // Fade out floating lines by 80% of viewport height
       const fadeStart = 0;
       const fadeEnd = windowHeight * 0.8;
-
       let newOpacity = 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart);
       newOpacity = Math.max(0, Math.min(1, newOpacity));
 
-      // Direct DOM manipulation to avoid React re-renders on every scroll frame
       if (floatingLinesContainerRef.current) {
         floatingLinesContainerRef.current.style.opacity = newOpacity;
         floatingLinesContainerRef.current.style.pointerEvents = newOpacity > 0 ? 'auto' : 'none';
       }
 
-      // Only update state when crossing the threshold to pause/unpause heavy components
       if (newOpacity <= 0 && areLinesVisible) {
         setAreLinesVisible(false);
       } else if (newOpacity > 0 && !areLinesVisible) {
         setAreLinesVisible(true);
       }
 
-      // Activate TextPressure when we are mostly on the second page
       if (scrollY > windowHeight * 0.8) {
         setTextPressureActive(true);
       } else {
         setTextPressureActive(false);
       }
-
     };
 
     window.addEventListener('scroll', handleScroll);
-    // Initial call to set correct state
     handleScroll();
-
     return () => window.removeEventListener('scroll', handleScroll);
   }, [areLinesVisible]);
 
@@ -119,32 +80,20 @@ function App() {
     <>
       <div className="content-wrapper">
         <header className="top-bar">
-          <div className="logo">TzuChi</div> {/* Placeholder logo like the photo */}
+          <div className="logo">TzuChi</div>
           <div className="center-top"></div>
           <div className="date-location">Created<br />2025/11/21</div>
         </header>
-
         <main className="center-content">
-          <h1>
-            Aaron Preston
-          </h1>
-          <h2>
-            李宜倖
-          </h2>
+          <h1>Aaron Preston</h1>
+          <h2>李宜倖</h2>
           <div className="role">Year 2</div>
         </main>
-
-        {/* Footer or bottom elements could go here */}
         <div></div>
       </div>
 
       {/* Spacer before Page 2 */}
-      <div className="spacer-section" style={{
-        width: '100%',
-        minHeight: '80vh', // Responsive height
-        backgroundColor: '#000',
-        zIndex: 2
-      }}></div>
+      <div className="spacer-section" style={{ width: '100%', minHeight: '80vh', backgroundColor: '#000', zIndex: 2 }}></div>
 
       <div style={{
         position: 'relative',
@@ -154,8 +103,8 @@ function App() {
         justifyContent: 'center',
         zIndex: 2,
         background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, #000 20%)',
-        marginTop: '-20vh', /* Pull it up to overlap */
-        paddingTop: '20vh'  /* Compensate for the pull */
+        marginTop: '-20vh',
+        paddingTop: '20vh',
       }}>
         <div style={{ position: 'relative', minHeight: '80vh', width: '100%', display: 'flex', flexDirection: 'column' }}>
           <div style={{ position: 'relative', flex: 1, width: '100%' }}>
@@ -191,22 +140,11 @@ function App() {
         </div>
       </div>
 
-      <div style={{
-        width: '100%',
-        height: '50px',
-        backgroundColor: '#000',
-        zIndex: 2
-      }}>
-      </div>
+      <div style={{ width: '100%', height: '50px', backgroundColor: '#000', zIndex: 2 }}></div>
 
       <div ref={nothingSectionRef} style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
         <div style={{ maxWidth: '800px', color: 'white' }}>
-          <ScrollReveal
-            baseOpacity={0.1}
-            enableBlur={true}
-            baseRotation={35}
-            blurStrength={5}
-          >
+          <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={35} blurStrength={5}>
             nothing
           </ScrollReveal>
         </div>
@@ -214,33 +152,18 @@ function App() {
 
       <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'left', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
         <div style={{ maxWidth: '800px', color: 'white' }}>
-          <ScrollReveal
-            baseOpacity={0.1}
-            enableBlur={false}
-            baseRotation={35}
-            blurStrength={5}
-          >
-            But as how Matthew said.
-            <br /><br />
+          <ScrollReveal baseOpacity={0.1} enableBlur={false} baseRotation={35} blurStrength={5}>
+            But as how Matthew said.<br /><br />
           </ScrollReveal>
         </div>
       </div>
 
       <div style={{ fontSize: '2rem', position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '60px' }}>
         <div style={{ maxWidth: '1800px', color: 'white' }}>
-          <ScrollReveal
-            baseOpacity={0.2}
-            enableBlur={false}
-            baseRotation={5}
-            blurStrength={6}
-          >
-            <h4>"Every day, every week, every year of my life, my hero's always 10 years away.
-              <br />
-              I'm never going to be my hero. I'm not going to attain that.
-              <br />
-              I know I'm not, and that's just fine with me, because that keeps me with somebody to keep on chasing."
-              <br />
-              <br />
+          <ScrollReveal baseOpacity={0.2} enableBlur={false} baseRotation={5} blurStrength={6}>
+            <h4>"Every day, every week, every year of my life, my hero's always 10 years away.<br />
+              I'm never going to be my hero. I'm not going to attain that.<br />
+              I know I'm not, and that's just fine with me, because that keeps me with somebody to keep on chasing."<br /><br />
             </h4>
             <h3>- Matthew McConaughey's</h3>
           </ScrollReveal>
@@ -259,7 +182,6 @@ function App() {
             cursorCharacter="|"
             className="scroll-text-component"
             style={{ fontSize: 'clamp(1.5rem, 5vw, 3rem)', fontWeight: '200', letterSpacing: '0.03em' }}
-            onLockChange={setIsScrollLocked}
           />
         </div>
       </div>
@@ -271,21 +193,67 @@ function App() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          color: 'black'
+          position: 'relative',
+          width: '100%',
+          minHeight: '100vh'
         }}>
-          <h1 style={{ fontSize: '4rem', fontWeight: 'bold' }}>Next Page</h1>
-          <p style={{ fontSize: '1.5rem', marginTop: '1rem' }}>Welcome to the white background.</p>
+          {/* Full-page Cubes background */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '80%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1
+          }}>
+            <Cubes
+              gridSize={12}
+              maxAngle={45}
+              radius={3.5}
+              borderStyle="2px solid rgba(82, 39, 255, 0.3)"
+              faceColor="#1a1a2e"
+              rippleColor="#ff6b6b"
+              rippleSpeed={2.5}
+              autoAnimate={true}
+              rippleOnClick={true}
+            />
+          </div>
+
+          {/* Centered My-Works text overlay */}
+          <div style={{
+            position: 'relative',
+            zIndex: 2,
+            width: '100%',
+            height: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            pointerEvents: 'none'
+          }}>
+            <h1 style={{
+              fontSize: 'clamp(3rem, 8vw, 6rem)',
+              fontWeight: 'bold',
+              color: 'white',
+              textShadow: '0 0 20px rgba(255, 107, 107, 0.5), 0 0 40px rgba(82, 39, 255, 0.3)',
+              letterSpacing: '0.1em',
+              pointerEvents: 'auto'
+            }}>
+              My-Works
+            </h1>
+          </div>
         </div>
       </LiquidTransitionEffect>
 
       <div
         ref={floatingLinesContainerRef}
-        style={{ width: '100%', height: '100%', position: 'fixed', top: 0, left: 0, zIndex: 0, transition: 'opacity 0.1s ease-out' }}
+        style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 0, transition: 'opacity 0.1s ease-out' }}
       >
         <FloatingLines
           enabledWaves={['top', 'middle', 'bottom']}
-          lineCount={[7, 5, 4]}
+          lineCount={[12, 5, 4]}
           lineDistance={[20, 22, 18]}
           bendRadius={10.0}
           bendStrength={-1}

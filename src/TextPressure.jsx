@@ -46,11 +46,22 @@ const TextPressure = ({
     useEffect(() => {
         if (!active) return;
 
+        let lastFrameTime = 0;
+        const throttleDelay = 16; // ~60fps throttle for mouse updates
+
         const handleMouseMove = e => {
+            const now = Date.now();
+            if (now - lastFrameTime < throttleDelay) return;
+            lastFrameTime = now;
+
             cursorRef.current.x = e.clientX;
             cursorRef.current.y = e.clientY;
         };
         const handleTouchMove = e => {
+            const now = Date.now();
+            if (now - lastFrameTime < throttleDelay) return;
+            lastFrameTime = now;
+
             const t = e.touches[0];
             cursorRef.current.x = t.clientX;
             cursorRef.current.y = t.clientY;
@@ -176,7 +187,10 @@ const TextPressure = ({
                 position: 'relative',
                 width: '100%',
                 height: '100%',
-                background: 'transparent'
+                background: 'transparent',
+                paddingLeft: '15px',
+                paddingRight: '15px',
+                boxSizing: 'border-box'
             }}
         >
             <style>{`
