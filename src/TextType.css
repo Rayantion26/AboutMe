@@ -1,6 +1,6 @@
 .text-type {
     display: inline-block;
-    white-space: pre-wrap;
+    white-space: nowrap;
     font-size: inherit;
     font-family: inherit;
     color: inherit;

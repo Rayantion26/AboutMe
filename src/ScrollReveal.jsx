@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, Children, isValidElement, cloneElement } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -20,17 +20,32 @@ const ScrollReveal = ({
 }) => {
     const containerRef = useRef(null);
 
-    const splitText = useMemo(() => {
-        const text = typeof children === 'string' ? children : '';
-        return text.split(/(\s+)/).map((word, index) => {
-            if (word.match(/^\s+$/)) return word;
-            return (
-                <span className="word" key={index}>
-                    {word}
-                </span>
-            );
+    // Helper to wrap text words in spans, preserving structure
+    const processChildren = (nodes) => {
+        return Children.map(nodes, (child) => {
+            if (typeof child === 'string') {
+                return child.split(/(\s+)/).map((word, index) => {
+                    if (word.match(/^\s+$/)) return word;
+                    return (
+                        <span className="word" key={index}>
+                            {word}
+                        </span>
+                    );
+                });
+            }
+            if (isValidElement(child)) {
+                if (child.props.children) {
+                    return cloneElement(child, {
+                        children: processChildren(child.props.children)
+                    });
+                }
+                return child;
+            }
+            return child;
         });
-    }, [children]);
+    };
+
+    const processedChildren = useMemo(() => processChildren(children), [children]);
 
     useEffect(() => {
         const el = containerRef.current;
@@ -99,7 +114,7 @@ const ScrollReveal = ({
 
     return (
         <h2 ref={containerRef} className={`scroll-reveal ${containerClassName}`}>
-            <p className={`scroll-reveal-text ${textClassName}`}>{splitText}</p>
+            <div className={`scroll-reveal-text ${textClassName}`}>{processedChildren}</div>
         </h2>
     );
 };

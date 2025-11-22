@@ -42,7 +42,7 @@ $oldPath = $env:PATH
 $env:PATH = "$gitDir;$env:PATH"
 
 # Force a clean deploy with no history or CNAME
-& "C:\Program Files\nodejs\node.exe" .\node_modules\gh-pages\bin\gh-pages.js -d dist --nojekyll --remove "CNAME" --repo "https://github.com/Rayantion26/AboutMe.git" --branch gh-pages --dotfiles true
+& "C:\Program Files\nodejs\node.exe" .\node_modules\gh-pages\bin\gh-pages.js -d dist --nojekyll --remove "CNAME" --branch gh-pages
 
 $deployResult = $LASTEXITCODE
 $env:PATH = $oldPath

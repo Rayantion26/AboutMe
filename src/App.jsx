@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import FloatingLines from './FloatingLines';
 import TextPressure from './TextPressure';
@@ -10,6 +10,7 @@ function App() {
   const [textPressureActive, setTextPressureActive] = useState(false);
   const [areLinesVisible, setAreLinesVisible] = useState(true);
   const floatingLinesContainerRef = useRef(null);
+  const nothingSectionRef = useRef(null);
 
   const [isScrollLocked, setIsScrollLocked] = useState(false);
 
@@ -103,6 +104,7 @@ function App() {
       } else {
         setTextPressureActive(false);
       }
+
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -196,11 +198,11 @@ function App() {
       }}>
       </div>
 
-      <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
+      <div ref={nothingSectionRef} style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
         <div style={{ maxWidth: '800px', color: 'white' }}>
           <ScrollReveal
             baseOpacity={0.1}
-            enableBlur={false}
+            enableBlur={true}
             baseRotation={35}
             blurStrength={5}
           >
@@ -209,39 +211,51 @@ function App() {
         </div>
       </div>
 
-      <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '60px' }}>
-        <div style={{ maxWidth: '1000px', color: 'white' }}>
+      <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'left', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
+        <div style={{ maxWidth: '800px', color: 'white' }}>
           <ScrollReveal
-            baseOpacity={0.2}
+            baseOpacity={0.1}
             enableBlur={false}
-            baseRotation={15}
-            blurStrength={6}
+            baseRotation={35}
+            blurStrength={5}
           >
-            ---------But as how matthew said---------
-            "Every day, every week, every year of my life, my hero's always 10 years away.
-            I'm never going to be my hero. I'm not going to attain that.
-            I know I'm not, and that's just fine with me, because that keeps me with somebody to keep on chasing."
-            - Matthew McConaughey's
+            But as how Matthew said.
+            <br /><br />
           </ScrollReveal>
         </div>
       </div>
 
-      {/* <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
-        <div style={{ maxWidth: '800px', color: 'white', fontSize: '2.5rem', fontWeight: '300', lineHeight: '1.5' }}>
-          <ScrollTextType
-            text="But as how matthew said."
-            showCursor={true}
-            cursorCharacter="|"
-            style={{ fontSize: '3rem', fontWeight: '200', letterSpacing: '0.03em' }}
-            onLockChange={setIsScrollLocked}
-          />
+      <div style={{ fontSize: '2rem', position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '60px' }}>
+        <div style={{ maxWidth: '1800px', color: 'white' }}>
+          <ScrollReveal
+            baseOpacity={0.2}
+            enableBlur={false}
+            baseRotation={5}
+            blurStrength={6}
+          >
+            <h1>"Every day, every week, every year of my life, my hero's always 10 years away.
+              <br />
+              I'm never going to be my hero. I'm not going to attain that.
+              <br />
+              I know I'm not, and that's just fine with me, because that keeps me with somebody to keep on chasing."
+              <br />
+            </h1>
+            <h3>- Matthew McConaughey's</h3>
+          </ScrollReveal>
         </div>
       </div>
 
-      <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
-        <div style={{ maxWidth: '800px', color: 'white', fontSize: '2.5rem', fontWeight: '300', lineHeight: '1.5' }}>
+      <div style={{ position: 'relative', minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '90px' }}>
+        <div style={{ maxWidth: '500px', color: 'white', fontSize: '2.5rem', fontWeight: '300', lineHeight: '1.5' }}>
           <ScrollTextType
-            text="But as how matthew said."
+            text="But here's what i've been working on.
+
+
+
+For these past few years
+
+
+or days"
             showCursor={true}
             cursorCharacter="|"
             style={{ fontSize: '3rem', fontWeight: '200', letterSpacing: '0.03em' }}
@@ -249,7 +263,6 @@ function App() {
           />
         </div>
       </div>
-      */}
 
       <div
         ref={floatingLinesContainerRef}

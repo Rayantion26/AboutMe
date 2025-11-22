@@ -1,6 +1,6 @@
 // Component ported from https://codepen.io/JuanFuentes/full/rgXKGQ
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const TextPressure = ({
     text = 'Compressa',
@@ -118,7 +118,7 @@ const TextPressure = ({
 
         let rafId;
         let lastTime = 0;
-        const targetFPS = 30;
+        const targetFPS = 60;
         const frameInterval = 1000 / targetFPS;
 
         const animate = (currentTime) => {
