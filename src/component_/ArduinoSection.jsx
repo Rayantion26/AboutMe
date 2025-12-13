@@ -1,0 +1,315 @@
+import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+// import arduinoImg from '../assets/arduino.jpg'; // Missing file
+const arduinoImg = "https://placehold.co/1920x1080/00979C/ffffff?text=Arduino+Engineering";
+import '../App.css';
+
+gsap.registerPlugin(ScrollTrigger);
+
+const ArduinoSection = () => {
+    const navigate = useNavigate();
+    const containerRef = useRef(null);
+    const wrapperRef = useRef(null);
+    const imageRef = useRef(null);
+    const centerTextRef = useRef(null);
+    const contentRightRef = useRef(null);
+    const borderRef = useRef(null);
+
+    useEffect(() => {
+        let mm = gsap.matchMedia();
+
+        mm.add("(min-width: 800px)", () => {
+            // DESKTOP ANIMATION
+            const tl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: containerRef.current,
+                    start: "top top",
+                    end: "+=800%", // Extended for slower scroll
+                    scrub: 2,
+                    pin: true,
+                    anticipatePin: 1
+                }
+            });
+
+            gsap.set(wrapperRef.current, {
+                width: '100vw',
+                height: '100vh',
+                borderRadius: '0px',
+                top: '50%',
+                left: '50%',
+                xPercent: -50,
+                yPercent: -50,
+            });
+
+            // Reset mobile styles just in case
+            gsap.set(contentRightRef.current, {
+                top: '50%',
+                right: '5%',
+                left: 'auto',
+                bottom: 'auto',
+                width: '45%',
+                x: 50,
+                y: 0
+            });
+
+            tl.to(wrapperRef.current, {
+                width: '35vw',
+                height: '35vw',
+                borderRadius: '50px',
+                left: '25%',
+                ease: "power2.inOut",
+                duration: 2
+            }, "phase1")
+                .to(centerTextRef.current, {
+                    opacity: 0,
+                    scale: 0.8,
+                    duration: 1,
+                    ease: "power2.in",
+                }, "phase1")
+                .to(borderRef.current, {
+                    opacity: 1,
+                    scale: 1,
+                    duration: 1,
+                    ease: "power2.out"
+                }, "phase1+=1")
+                .fromTo(contentRightRef.current,
+                    { opacity: 0, x: 50 },
+                    { opacity: 1, x: 0, duration: 1.5, ease: "power2.out" },
+                    "phase1+=1"
+                );
+        });
+
+        mm.add("(max-width: 799px)", () => {
+            // MOBILE ANIMATION
+            const tl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: containerRef.current,
+                    start: "top top",
+                    end: "+=800%", // Extended for slower scroll
+                    scrub: 2,
+                    pin: true,
+                    anticipatePin: 1
+                }
+            });
+
+            gsap.set(wrapperRef.current, {
+                width: '100vw',
+                height: '100vh',
+                borderRadius: '0px',
+                top: '50%',
+                left: '50%',
+                xPercent: -50,
+                yPercent: -50,
+            });
+
+            // Adjust border for mobile
+            gsap.set(borderRef.current, {
+                width: '85vw',
+                height: '85vw',
+                left: '50%',
+                top: '40%' // Move up slightly
+            });
+
+            // Adjust content for mobile (stack below)
+            gsap.set(contentRightRef.current, {
+                top: 'auto',
+                bottom: '10%',
+                left: '50%',
+                right: 'auto',
+                width: '90%',
+                xPercent: -50,
+                x: 0,
+                y: 50, // Start lower
+                textAlign: 'center'
+            });
+
+            tl.to(wrapperRef.current, {
+                width: '80vw',
+                height: '80vw',
+                borderRadius: '40px',
+                left: '50%', // Center horizontally
+                top: '40%', // Move up to make room for text
+                ease: "power2.inOut",
+                duration: 2
+            }, "phase1")
+                .to(centerTextRef.current, {
+                    opacity: 0,
+                    scale: 0.8,
+                    duration: 1,
+                    ease: "power2.in",
+                }, "phase1")
+                .to(borderRef.current, {
+                    opacity: 1,
+                    scale: 1,
+                    duration: 1,
+                    ease: "power2.out"
+                }, "phase1+=1")
+                .fromTo(contentRightRef.current,
+                    { opacity: 0, y: 50 },
+                    { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" },
+                    "phase1+=1"
+                );
+        });
+
+        return () => mm.revert();
+    }, []);
+
+    const handleMouseEnter = () => {
+        gsap.to(imageRef.current, { scale: 1, duration: 0.5, ease: "power2.out" });
+    };
+
+    const handleMouseLeave = () => {
+        gsap.to(imageRef.current, { scale: 1.15, duration: 0.5, ease: "power2.out" });
+    };
+
+    const handleClick = () => {
+        navigate('/arduino-projects');
+    };
+
+    return (
+        <section
+            ref={containerRef}
+            style={{
+                height: '100vh',
+                width: '100%',
+                position: 'relative',
+                backgroundColor: '#000',
+                overflow: 'hidden'
+            }}
+        >
+            <div
+                ref={centerTextRef}
+                style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 10,
+                    width: '100%',
+                    textAlign: 'center',
+                    pointerEvents: 'none',
+                    mixBlendMode: 'difference'
+                }}
+            >
+                <h1 style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: '900',
+                    fontSize: 'clamp(3rem, 15vw, 15rem)',
+                    color: 'white',
+                    letterSpacing: '0.05em',
+                    margin: 0,
+                    textWrap: 'balance'
+                }}>
+                    ENGINEERING
+                </h1>
+            </div>
+
+            <div
+                ref={borderRef}
+                style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '25%', // Default desktop pos, overridden by GSAP
+                    transform: 'translate(-50%, -50%)',
+                    width: '37vw',
+                    height: '37vw',
+                    borderRadius: '60px',
+                    border: '2px solid rgba(0, 151, 156, 0.3)',
+                    boxShadow: '0 0 30px rgba(0, 151, 156, 0.1)',
+                    zIndex: 5,
+                    opacity: 0,
+                    pointerEvents: 'none'
+                }}
+            ></div>
+
+            <div
+                ref={wrapperRef}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                onClick={handleClick}
+                style={{
+                    position: 'absolute',
+                    zIndex: 2,
+                    overflow: 'hidden',
+                    boxShadow: '0 30px 60px rgba(0,0,0,0.5)',
+                    cursor: 'pointer',
+                    backgroundColor: '#1a1a1a'
+                }}
+            >
+                <img
+                    ref={imageRef}
+                    src={arduinoImg}
+                    alt="Arduino Engineering"
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transform: 'scale(1.15)',
+                        transition: 'transform 0.5s ease-out'
+                    }}
+                />
+            </div>
+
+            <div
+                ref={contentRightRef}
+                style={{
+                    position: 'absolute',
+                    top: '50%',
+                    right: '5%',
+                    transform: 'translate(0, -50%)',
+                    width: '45%',
+                    zIndex: 5,
+                    opacity: 0,
+                    color: 'white'
+                }}
+            >
+                <h2 style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: '900',
+                    fontSize: 'clamp(2rem, 4vw, 5rem)',
+                    marginBottom: '20px',
+                    textTransform: 'uppercase',
+                    lineHeight: '1.1',
+                    color: '#00979C',
+                    textWrap: 'balance'
+                }}>
+                    Smart Systems & IoT
+                </h2>
+                <div style={{ width: '60px', height: '4px', backgroundColor: '#00979C', marginBottom: '30px', display: 'inline-block' }}></div>
+                <p style={{
+                    fontFamily: "'Roboto', sans-serif",
+                    fontSize: 'clamp(1rem, 1.2vw, 1.2rem)',
+                    lineHeight: '1.8',
+                    fontWeight: '300',
+                    color: '#ccc',
+                    marginBottom: '40px'
+                }}>
+                    Specializing in embedded systems and automated solutions. From autonomous line-following robots to RFID parking complexes,
+                    I build the bridge between code and the physical world.
+                </p>
+                <button
+                    onClick={handleClick}
+                    className="view-project-btn"
+                    style={{
+                        padding: '15px 40px',
+                        border: '1px solid #00979C',
+                        backgroundColor: 'transparent',
+                        color: '#00979C',
+                        borderRadius: '30px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        letterSpacing: '0.1rem',
+                        textTransform: 'uppercase',
+                        transition: 'all 0.3s ease'
+                    }}
+                >
+                    View Projects
+                </button>
+            </div>
+        </section>
+    );
+};
+
+export default ArduinoSection;

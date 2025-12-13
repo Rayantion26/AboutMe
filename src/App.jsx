@@ -1,31 +1,108 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import gsap from 'gsap';
 import Lenis from 'lenis';
 import FloatingLines from './FloatingLines';
-import TextPressure from './TextPressure';
-import ScrollReveal from './ScrollReveal';
-import ScrollTextType from './ScrollTextType';
-import LiquidTransitionEffect from './LiquidTransitionEffect';
-import Cubes from './Cubes';
+import About from './component_/About';
+import AudiophileSection from './component_/AudiophileSection';
+import ArduinoSection from './component_/ArduinoSection';
+import Projects from './component_/Projects';
+import Skills from './component_/Skills';
+import Socials from './component_/Socials';
+import ArduinoProjectsPage from './component_/ArduinoProjectsPage';
 import './App.css';
 
-function App() {
-  const [textPressureActive, setTextPressureActive] = useState(false);
+const SectionTitlePage = ({ title }) => {
+  const textRef = useRef(null);
+
+  useEffect(() => {
+    // Floating Animation
+    gsap.to(textRef.current, {
+      y: -20,
+      duration: 2,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut"
+    });
+  }, []);
+
+  const handleMouseEnter = () => {
+    gsap.to(textRef.current, {
+      color: 'transparent',
+      webkitTextStroke: '2px #fff',
+      textShadow: '0 0 40px rgba(255, 255, 255, 0.8)',
+      scale: 1.05,
+      duration: 0.3
+    });
+  };
+
+  const handleMouseLeave = () => {
+    gsap.to(textRef.current, {
+      color: '#fff',
+      webkitTextStroke: '0px transparent',
+      textShadow: '0 0 30px rgba(255,255,255,0.1)',
+      scale: 1,
+      duration: 0.3
+    });
+  };
+
+  return (
+    <div style={{
+      height: '100vh',
+      width: '100vw',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#000',
+      color: '#fff',
+      zIndex: 1,
+      position: 'relative'
+    }}>
+      <h1
+        ref={textRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          fontFamily: "'Montserrat', sans-serif",
+          fontWeight: '900',
+          fontSize: 'clamp(3rem, 15vw, 15rem)',
+          margin: 0,
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          color: '#fff',
+          textShadow: '0 0 30px rgba(255,255,255,0.1)',
+          cursor: 'default',
+          willChange: 'transform, color, text-shadow',
+          textAlign: 'center',
+          padding: '0 20px',
+          width: '100%',
+          textWrap: 'balance'
+        }}
+      >
+        {title}
+      </h1>
+    </div>
+  );
+};
+
+const Home = () => {
   const [areLinesVisible, setAreLinesVisible] = useState(true);
   const floatingLinesContainerRef = useRef(null);
-  const nothingSectionRef = useRef(null);
   const lenisRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Initialize Lenis for smooth scrolling
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 5,
+      duration: 2.5,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
       gestureDirection: 'vertical',
       smooth: true,
-      mouseMultiplier: 0.08,
+      mouseMultiplier: 0.03, // Reduced sensitivity further
       smoothTouch: false,
-      touchMultiplier: 1.2,
+      touchMultiplier: 1.5,
       infinite: false,
     });
     lenisRef.current = lenis;
@@ -36,18 +113,35 @@ function App() {
     }
     requestAnimationFrame(raf);
 
+    // Handle incoming navigation from other pages (like back button)
+    if (location.state?.targetSection) {
+      setTimeout(() => {
+        const element = document.getElementById(location.state.targetSection);
+        if (element) {
+          lenis.scrollTo(element, { immediate: true });
+          window.history.replaceState({}, document.title);
+        }
+      }, 100);
+    }
+
     return () => {
       lenis.destroy();
     };
-  }, []);
+  }, [location]);
 
-  // Scroll handling for floating lines and other effects
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element && lenisRef.current) {
+      lenisRef.current.scrollTo(element);
+    }
+  };
+
+  // Scroll opacity handling
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const windowHeight = window.innerHeight;
 
-      // Fade out floating lines by 80% of viewport height
       const fadeStart = 0;
       const fadeEnd = windowHeight * 0.8;
       let newOpacity = 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart);
@@ -63,12 +157,6 @@ function App() {
       } else if (newOpacity > 0 && !areLinesVisible) {
         setAreLinesVisible(true);
       }
-
-      if (scrollY > windowHeight * 0.8) {
-        setTextPressureActive(true);
-      } else {
-        setTextPressureActive(false);
-      }
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -76,12 +164,54 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [areLinesVisible]);
 
+  // Button Hover Effect
+  const handleBtnEnter = (e) => {
+    gsap.to(e.target, {
+      y: -3,
+      borderColor: '#fff',
+      boxShadow: '0 0 15px rgba(255, 255, 255, 0.5)',
+      duration: 0.3
+    });
+  };
+
+  const handleBtnLeave = (e) => {
+    gsap.to(e.target, {
+      y: 0,
+      borderColor: 'transparent',
+      boxShadow: 'none',
+      duration: 0.3
+    });
+  };
+
   return (
     <>
       <div className="content-wrapper">
         <header className="top-bar">
-          <div className="logo">TzuChi</div>
-          <div className="center-top"></div>
+          <div
+            className="logo"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            style={{ cursor: 'pointer' }}
+          >
+            Home
+          </div>
+          <nav className="center-top" style={{ display: 'flex', gap: '20px', pointerEvents: 'auto' }}>
+            {['about', 'projects', 'audiophile', 'skills', 'socials'].map((section) => (
+              <button
+                key={section}
+                onClick={() => scrollToSection(section)}
+                onMouseEnter={handleBtnEnter}
+                onMouseLeave={handleBtnLeave}
+                className="nav-link"
+                style={{
+                  border: '1px solid transparent',
+                  borderRadius: '20px',
+                  padding: '8px 16px'
+                }}
+              >
+                {section === 'audiophile' ? 'Interests' : section.charAt(0).toUpperCase() + section.slice(1)}
+              </button>
+            ))}
+          </nav>
           <div className="date-location">Created<br />2025/11/21</div>
         </header>
         <main className="center-content">
@@ -91,161 +221,6 @@ function App() {
         </main>
         <div></div>
       </div>
-
-      {/* Spacer before Page 2 */}
-      <div className="spacer-section" style={{ width: '100%', minHeight: '80vh', backgroundColor: '#000', zIndex: 2 }}></div>
-
-      <div style={{
-        position: 'relative',
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 2,
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, #000 20%)',
-        marginTop: '-20vh',
-        paddingTop: '20vh',
-      }}>
-        <div style={{ position: 'relative', minHeight: '80vh', width: '100%', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ position: 'relative', flex: 1, width: '100%' }}>
-            <TextPressure
-              text="MY DREAM"
-              flex={true}
-              alpha={false}
-              stroke={true}
-              width={true}
-              weight={true}
-              italic={true}
-              textColor="#ffffff"
-              strokeColor="#ff0000"
-              minFontSize={36}
-              active={true}
-            />
-          </div>
-          <div style={{ position: 'relative', height: '100vh', flex: 1, width: '100%' }}>
-            <TextPressure
-              text="IN 5 YEARS??"
-              flex={true}
-              alpha={false}
-              stroke={true}
-              width={true}
-              weight={true}
-              italic={true}
-              textColor="#c8ff81ff"
-              strokeColor="#ffffffff"
-              minFontSize={36}
-              active={true}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div style={{ width: '100%', height: '50px', backgroundColor: '#000', zIndex: 2 }}></div>
-
-      <div ref={nothingSectionRef} style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
-        <div style={{ maxWidth: '800px', color: 'white' }}>
-          <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={35} blurStrength={5}>
-            nothing
-          </ScrollReveal>
-        </div>
-      </div>
-
-      <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'left', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '40px' }}>
-        <div style={{ maxWidth: '800px', color: 'white' }}>
-          <ScrollReveal baseOpacity={0.1} enableBlur={false} baseRotation={35} blurStrength={5}>
-            But as how Matthew said.<br /><br />
-          </ScrollReveal>
-        </div>
-      </div>
-
-      <div style={{ fontSize: '2rem', position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backgroundColor: 'black', padding: '60px' }}>
-        <div style={{ maxWidth: '1800px', color: 'white' }}>
-          <ScrollReveal baseOpacity={0.2} enableBlur={false} baseRotation={5} blurStrength={6}>
-            <h4>"Every day, every week, every year of my life, my hero's always 10 years away.<br />
-              I'm never going to be my hero. I'm not going to attain that.<br />
-              I know I'm not, and that's just fine with me, because that keeps me with somebody to keep on chasing."<br /><br />
-            </h4>
-            <h3>- Matthew McConaughey's</h3>
-          </ScrollReveal>
-        </div>
-      </div>
-
-      <div className="scroll-text-section">
-        <div className="scroll-text-container">
-          <ScrollTextType
-            text="But here's what i've been working on.
-            
-            For these past few years
-            
-            or days"
-            showCursor={true}
-            cursorCharacter="|"
-            className="scroll-text-component"
-            style={{ fontSize: 'clamp(1.5rem, 5vw, 3rem)', fontWeight: '200', letterSpacing: '0.03em' }}
-          />
-        </div>
-      </div>
-
-      {/* Integrated Liquid Transition */}
-      <LiquidTransitionEffect>
-        <div style={{
-          height: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          position: 'relative',
-          width: '100%',
-          minHeight: '100vh'
-        }}>
-          {/* Full-page Cubes background */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '80%',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1
-          }}>
-            <Cubes
-              gridSize={12}
-              maxAngle={45}
-              radius={3.5}
-              borderStyle="2px solid rgba(82, 39, 255, 0.3)"
-              faceColor="#1a1a2e"
-              rippleColor="#ff6b6b"
-              rippleSpeed={2.5}
-              autoAnimate={true}
-              rippleOnClick={true}
-            />
-          </div>
-
-          {/* Centered My-Works text overlay */}
-          <div style={{
-            position: 'relative',
-            zIndex: 2,
-            width: '100%',
-            height: '100vh',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            pointerEvents: 'none'
-          }}>
-            <h1 style={{
-              fontSize: 'clamp(3rem, 8vw, 6rem)',
-              fontWeight: 'bold',
-              color: 'white',
-              textShadow: '0 0 20px rgba(255, 107, 107, 0.5), 0 0 40px rgba(82, 39, 255, 0.3)',
-              letterSpacing: '0.1em',
-              pointerEvents: 'auto'
-            }}>
-              My-Works
-            </h1>
-          </div>
-        </div>
-      </LiquidTransitionEffect>
 
       <div
         ref={floatingLinesContainerRef}
@@ -262,7 +237,39 @@ function App() {
           paused={!areLinesVisible}
         />
       </div>
+
+      <div id="about">
+        <About />
+      </div>
+
+      {/* COMBINED PROJECTS SECTION */}
+      <div id="projects">
+        <SectionTitlePage title="PROJECTS" />
+        <ArduinoSection />
+        <Projects />
+      </div>
+
+      <div id="audiophile">
+        <SectionTitlePage title="INTERESTS" />
+        <AudiophileSection />
+      </div>
+
+      <div id="skills">
+        <Skills />
+      </div>
+      <div id="socials">
+        <Socials />
+      </div>
     </>
+  );
+};
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/arduino-projects" element={<ArduinoProjectsPage />} />
+    </Routes>
   );
 }
 
