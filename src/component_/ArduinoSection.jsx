@@ -50,11 +50,11 @@ const ArduinoSection = () => {
 
             // 1. Squircle Shape & Position
             tl.to(wrapperRef.current, {
-                width: isDesktop ? '35vw' : '90vw',
-                height: isDesktop ? '35vw' : '45vh',
+                width: isDesktop ? '35vw' : '85vw',
+                height: isDesktop ? '35vw' : '35dvh',
                 borderRadius: isDesktop ? '50px' : '30px',
                 left: isDesktop ? '25%' : '50%',
-                top: isDesktop ? '50%' : '40%',
+                top: isDesktop ? '50%' : '30%',
                 ease: "power2.inOut",
                 duration: 2
             }, "phase1")
@@ -67,10 +67,10 @@ const ArduinoSection = () => {
                 .to(borderRef.current, {
                     opacity: 1,
                     scale: 1,
-                    width: isDesktop ? '37vw' : '92vw',
-                    height: isDesktop ? '37vw' : '46vh',
+                    width: isDesktop ? '37vw' : '87vw',
+                    height: isDesktop ? '37vw' : '37dvh',
                     left: isDesktop ? '25%' : '50%',
-                    top: isDesktop ? '50%' : '40%',
+                    top: isDesktop ? '50%' : '30%',
                     duration: 1,
                     ease: "power2.out"
                 }, "phase1+=1");
@@ -78,7 +78,7 @@ const ArduinoSection = () => {
             // 2. Content Animation
             if (isMobile) {
                 gsap.set(contentRightRef.current, {
-                    top: '70%', // Move closer to squircle
+                    top: '55%', // Text starts below the image (30% center + half height ~17.5% = ~47.5%. 55% clears it)
                     bottom: 'auto',
                     left: '50%',
                     right: 'auto',
