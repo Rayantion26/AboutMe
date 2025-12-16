@@ -13,6 +13,7 @@ import lineTrackerVideo from '../assets/LineTrackerVideo.mp4';
 import hhmVideo1 from '../assets/HHMVideo1.mp4';
 import hhmVideo2 from '../assets/HHMVideo2.mp4';
 import rfidVideo from '../assets/RFIDVideo.mp4';
+import LoadingScreen from './LoadingScreen';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -176,7 +177,7 @@ const ProjectScrollSection = ({ project }) => {
                     trigger: containerRef.current,
                     start: "top top",
                     end: "+=500%",
-                    scrub: 2,
+                    scrub: 0.5, // Reduced from 2 to make animation follow finger tighter
                     pin: true,
                     anticipatePin: 1
                 }
@@ -461,7 +462,7 @@ const ProjectScrollSection = ({ project }) => {
                     color: '#fff',
                     textWrap: 'balance'
                 }}>
-                    Project Details
+                    {project.title}
                 </h2>
                 <div style={{ width: '60px', height: '4px', backgroundColor: '#fff', marginBottom: '30px' }}></div>
                 <p style={{
@@ -646,20 +647,21 @@ const ArduinoProjectsPage = () => {
     const navigate = useNavigate();
     const pageRef = useRef(null);
     const lenisRef = useRef(null);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     useEffect(() => {
         // FORCE SCROLL TO TOP ON MOUNT
         window.scrollTo(0, 0);
 
         const lenis = new Lenis({
-            duration: 2.5, // Smooth feel
+            duration: 0.6, // Heavy friction
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             direction: 'vertical',
             gestureDirection: 'vertical',
             smooth: true,
-            mouseMultiplier: 0.05,
+            mouseMultiplier: 0.3, // Heavy mouse feel
             smoothTouch: false,
-            touchMultiplier: 1.5,
+            touchMultiplier: 0.5, // Heavy swipe (geared down)
         });
         lenisRef.current = lenis;
 
@@ -711,68 +713,71 @@ const ArduinoProjectsPage = () => {
     };
 
     return (
-        <div ref={pageRef} className="arduino-page-wrapper" style={{ backgroundColor: '#000', color: 'white', position: 'relative', opacity: 0 }}>
+        <>
+            {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
+            <div ref={pageRef} className="arduino-page-wrapper" style={{ backgroundColor: '#000', color: 'white', position: 'relative', opacity: 0 }}>
 
-            {/* Sticky Nav Container - Moved to CSS classes */}
-            <div className="floating-nav-container">
-                <button
-                    onClick={() => fadeScrollTo('#gallery')}
-                    onMouseEnter={(e) => neonHoverEffect(e.currentTarget, '#00979C')}
-                    onMouseLeave={(e) => removeNeonEffect(e.currentTarget)}
-                    className="floating-nav-btn"
-                >
-                    ↓ Gallery
-                </button>
+                {/* Sticky Nav Container - Moved to CSS classes */}
+                <div className="floating-nav-container">
+                    <button
+                        onClick={() => fadeScrollTo('#gallery')}
+                        onMouseEnter={(e) => neonHoverEffect(e.currentTarget, '#00979C')}
+                        onMouseLeave={(e) => removeNeonEffect(e.currentTarget)}
+                        className="floating-nav-btn"
+                    >
+                        ↓ Gallery
+                    </button>
 
-                <button
-                    onClick={handleBack}
-                    onMouseEnter={(e) => neonHoverEffect(e.currentTarget, '#00979C')}
-                    onMouseLeave={(e) => removeNeonEffect(e.currentTarget)}
-                    className="floating-nav-btn"
-                >
-                    ← Back to Home
-                </button>
-            </div>
-
-            {projectsList.map(project => (
-                <ProjectScrollSection key={project.id} project={project} />
-            ))}
-
-            <section id="gallery" style={{ padding: '150px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '4rem', marginBottom: '80px', color: '#00979C', textAlign: 'center' }}>
-                    Gallery
-                </h1>
-
-                <div style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                    gap: '40px',
-                    maxWidth: '1400px',
-                    width: '100%'
-                }}>
-                    <div style={{ display: 'flex', gap: '40px', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        {projectsList.slice(0, 3).map(project => (
-                            <GalleryCard
-                                key={`grid-${project.id}`}
-                                project={project}
-                                onClick={() => fadeScrollTo(`#project-${project.id}`)} // Using fade transitions
-                            />
-                        ))}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '40px', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        {projectsList.slice(3, 5).map(project => (
-                            <GalleryCard
-                                key={`grid-${project.id}`}
-                                project={project}
-                                onClick={() => fadeScrollTo(`#project-${project.id}`)} // Using fade transitions
-                            />
-                        ))}
-                    </div>
+                    <button
+                        onClick={handleBack}
+                        onMouseEnter={(e) => neonHoverEffect(e.currentTarget, '#00979C')}
+                        onMouseLeave={(e) => removeNeonEffect(e.currentTarget)}
+                        className="floating-nav-btn"
+                    >
+                        ← Back to Home
+                    </button>
                 </div>
-            </section>
-        </div>
+
+                {projectsList.map(project => (
+                    <ProjectScrollSection key={project.id} project={project} />
+                ))}
+
+                <section id="gallery" style={{ padding: '150px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '4rem', marginBottom: '80px', color: '#00979C', textAlign: 'center' }}>
+                        Gallery
+                    </h1>
+
+                    <div style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        justifyContent: 'center',
+                        gap: '40px',
+                        maxWidth: '1400px',
+                        width: '100%'
+                    }}>
+                        <div style={{ display: 'flex', gap: '40px', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            {projectsList.slice(0, 3).map(project => (
+                                <GalleryCard
+                                    key={`grid-${project.id}`}
+                                    project={project}
+                                    onClick={() => fadeScrollTo(`#project-${project.id}`)} // Using fade transitions
+                                />
+                            ))}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '40px', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            {projectsList.slice(3, 5).map(project => (
+                                <GalleryCard
+                                    key={`grid-${project.id}`}
+                                    project={project}
+                                    onClick={() => fadeScrollTo(`#project-${project.id}`)} // Using fade transitions
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </>
     );
 };
 

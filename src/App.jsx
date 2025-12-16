@@ -12,6 +12,7 @@ import Skills from './component_/Skills';
 import Socials from './component_/Socials';
 import ArduinoProjectsPage from './component_/ArduinoProjectsPage';
 import CustomCursor from './component_/CustomCursor';
+import LoadingScreen from './component_/LoadingScreen';
 import './App.css';
 
 const SectionTitlePage = ({ title }) => {
@@ -88,7 +89,9 @@ const SectionTitlePage = ({ title }) => {
 };
 
 const Home = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [areLinesVisible, setAreLinesVisible] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const floatingLinesContainerRef = useRef(null);
   const lenisRef = useRef(null);
   const navigate = useNavigate();
@@ -97,14 +100,14 @@ const Home = () => {
   // Initialize Lenis for smooth scrolling
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 2.0,
+      duration: 0.6, // Very heavy friction to stop "slipping"
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
       gestureDirection: 'vertical',
       smooth: true,
-      mouseMultiplier: 0.5, // Standardized multiplier, reduced duration for control
+      mouseMultiplier: 0.3, // Very controlled
       smoothTouch: false,
-      touchMultiplier: 1.5,
+      touchMultiplier: 0.5, // 1/2 speed swipes for maximum control
       infinite: false,
     });
     lenisRef.current = lenis;
@@ -132,6 +135,7 @@ const Home = () => {
   }, [location]);
 
   const scrollToSection = (id) => {
+    setIsMenuOpen(false); // Close mobile menu if open
     const element = document.getElementById(id);
     if (element && lenisRef.current) {
       lenisRef.current.scrollTo(element);
@@ -187,8 +191,18 @@ const Home = () => {
 
   return (
     <>
+      {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
       <div className="content-wrapper">
         <header className="top-bar">
+          {/* Hamburger Icon (Mobile Only) - replaces Logo location */}
+          <div
+            className="hamburger-icon"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            style={{ zIndex: 10002, cursor: 'pointer', display: 'none' }}
+          >
+            {isMenuOpen ? '✕' : '☰'}
+          </div>
+
           <div
             className="logo"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -196,7 +210,7 @@ const Home = () => {
           >
             Home
           </div>
-          <nav className="center-top" style={{ display: 'flex', gap: '20px', pointerEvents: 'auto' }}>
+          <nav className="center-top desktop-nav">
             {['about', 'projects', 'audiophile', 'skills', 'socials'].map((section) => (
               <button
                 key={section}
@@ -214,8 +228,31 @@ const Home = () => {
               </button>
             ))}
           </nav>
+
           <div className="date-location">Created<br />2025/11/21</div>
         </header>
+
+        {/* Mobile Side Drawer + Backdrop */}
+        {/* Backdrop to close when clicking outside */}
+        <div
+          className={`mobile-menu-backdrop ${isMenuOpen ? 'open' : ''}`}
+          onClick={() => setIsMenuOpen(false)}
+        ></div>
+
+        {/* The Sidebar itself */}
+        <div className={`mobile-menu-sidebar ${isMenuOpen ? 'open' : ''}`}>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '30px', textAlign: 'left', paddingLeft: '40px' }}>
+            {['about', 'projects', 'audiophile', 'skills', 'socials'].map((section) => (
+              <button
+                key={section}
+                onClick={() => scrollToSection(section)}
+                className="mobile-nav-link"
+              >
+                {section === 'audiophile' ? 'Interests' : section.charAt(0).toUpperCase() + section.slice(1)}
+              </button>
+            ))}
+          </nav>
+        </div>
         <main className="center-content">
           <h1>Aaron Preston</h1>
           <h2>李宜倖</h2>
