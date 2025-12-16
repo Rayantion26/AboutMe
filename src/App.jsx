@@ -5,11 +5,13 @@ import Lenis from 'lenis';
 import FloatingLines from './FloatingLines';
 import About from './component_/About';
 import AudiophileSection from './component_/AudiophileSection';
+import CoffeeSection from './component_/CoffeeSection';
 import ArduinoSection from './component_/ArduinoSection';
 import Projects from './component_/Projects';
 import Skills from './component_/Skills';
 import Socials from './component_/Socials';
 import ArduinoProjectsPage from './component_/ArduinoProjectsPage';
+import CustomCursor from './component_/CustomCursor';
 import './App.css';
 
 const SectionTitlePage = ({ title }) => {
@@ -95,12 +97,12 @@ const Home = () => {
   // Initialize Lenis for smooth scrolling
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 2.5,
+      duration: 2.0,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
       gestureDirection: 'vertical',
       smooth: true,
-      mouseMultiplier: 0.03, // Reduced sensitivity further
+      mouseMultiplier: 0.5, // Standardized multiplier, reduced duration for control
       smoothTouch: false,
       touchMultiplier: 1.5,
       infinite: false,
@@ -252,6 +254,7 @@ const Home = () => {
       <div id="audiophile">
         <SectionTitlePage title="INTERESTS" />
         <AudiophileSection />
+        <CoffeeSection />
       </div>
 
       <div id="skills">
@@ -266,10 +269,13 @@ const Home = () => {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/arduino-projects" element={<ArduinoProjectsPage />} />
-    </Routes>
+    <>
+      <CustomCursor />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/arduino-projects" element={<ArduinoProjectsPage />} />
+      </Routes>
+    </>
   );
 }
 

@@ -2,8 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-// import arduinoImg from '../assets/arduino.jpg'; // Missing file
-const arduinoImg = "https://placehold.co/1920x1080/00979C/ffffff?text=Arduino+Engineering";
+import arduinoImg from '../assets/RobotLineTracker.jpg';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -20,13 +19,17 @@ const ArduinoSection = () => {
     useEffect(() => {
         let mm = gsap.matchMedia();
 
-        mm.add("(min-width: 800px)", () => {
-            // DESKTOP ANIMATION
+        mm.add({
+            isDesktop: "(min-width: 800px)",
+            isMobile: "(max-width: 799px)"
+        }, (context) => {
+            let { isDesktop, isMobile } = context.conditions;
+
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top top",
-                    end: "+=800%", // Extended for slower scroll
+                    end: "+=800%",
                     scrub: 2,
                     pin: true,
                     anticipatePin: 1
@@ -43,22 +46,15 @@ const ArduinoSection = () => {
                 yPercent: -50,
             });
 
-            // Reset mobile styles just in case
-            gsap.set(contentRightRef.current, {
-                top: '50%',
-                right: '5%',
-                left: 'auto',
-                bottom: 'auto',
-                width: '45%',
-                x: 50,
-                y: 0
-            });
+            // --- ANIMATION PHASES ---
 
+            // 1. Squircle Shape & Position
             tl.to(wrapperRef.current, {
-                width: '35vw',
-                height: '35vw',
-                borderRadius: '50px',
-                left: '25%',
+                width: isDesktop ? '35vw' : '90vw',
+                height: isDesktop ? '35vw' : '45vh',
+                borderRadius: isDesktop ? '50px' : '30px',
+                left: isDesktop ? '25%' : '50%',
+                top: isDesktop ? '50%' : '40%',
                 ease: "power2.inOut",
                 duration: 2
             }, "phase1")
@@ -71,86 +67,54 @@ const ArduinoSection = () => {
                 .to(borderRef.current, {
                     opacity: 1,
                     scale: 1,
+                    width: isDesktop ? '37vw' : '92vw',
+                    height: isDesktop ? '37vw' : '46vh',
+                    left: isDesktop ? '25%' : '50%',
+                    top: isDesktop ? '50%' : '40%',
                     duration: 1,
                     ease: "power2.out"
-                }, "phase1+=1")
-                .fromTo(contentRightRef.current,
-                    { opacity: 0, x: 50 },
-                    { opacity: 1, x: 0, duration: 1.5, ease: "power2.out" },
-                    "phase1+=1"
-                );
-        });
+                }, "phase1+=1");
 
-        mm.add("(max-width: 799px)", () => {
-            // MOBILE ANIMATION
-            const tl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: containerRef.current,
-                    start: "top top",
-                    end: "+=800%", // Extended for slower scroll
-                    scrub: 2,
-                    pin: true,
-                    anticipatePin: 1
-                }
-            });
+            // 2. Content Animation
+            if (isMobile) {
+                gsap.set(contentRightRef.current, {
+                    top: '63%', // Move closer to squircle
+                    bottom: 'auto',
+                    left: '50%',
+                    right: 'auto',
+                    width: '85%',
+                    xPercent: -50,
+                    yPercent: 0,
+                    x: 0,
+                    textAlign: 'center',
+                    padding: '0 10px'
+                });
 
-            gsap.set(wrapperRef.current, {
-                width: '100vw',
-                height: '100vh',
-                borderRadius: '0px',
-                top: '50%',
-                left: '50%',
-                xPercent: -50,
-                yPercent: -50,
-            });
-
-            // Adjust border for mobile
-            gsap.set(borderRef.current, {
-                width: '85vw',
-                height: '85vw',
-                left: '50%',
-                top: '40%' // Move up slightly
-            });
-
-            // Adjust content for mobile (stack below)
-            gsap.set(contentRightRef.current, {
-                top: 'auto',
-                bottom: '10%',
-                left: '50%',
-                right: 'auto',
-                width: '90%',
-                xPercent: -50,
-                x: 0,
-                y: 50, // Start lower
-                textAlign: 'center'
-            });
-
-            tl.to(wrapperRef.current, {
-                width: '80vw',
-                height: '80vw',
-                borderRadius: '40px',
-                left: '50%', // Center horizontally
-                top: '40%', // Move up to make room for text
-                ease: "power2.inOut",
-                duration: 2
-            }, "phase1")
-                .to(centerTextRef.current, {
-                    opacity: 0,
-                    scale: 0.8,
-                    duration: 1,
-                    ease: "power2.in",
-                }, "phase1")
-                .to(borderRef.current, {
-                    opacity: 1,
-                    scale: 1,
-                    duration: 1,
-                    ease: "power2.out"
-                }, "phase1+=1")
-                .fromTo(contentRightRef.current,
+                tl.fromTo(contentRightRef.current,
                     { opacity: 0, y: 50 },
                     { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" },
                     "phase1+=1"
                 );
+            } else {
+                gsap.set(contentRightRef.current, {
+                    top: '50%',
+                    right: '5%',
+                    left: 'auto',
+                    bottom: 'auto',
+                    width: '45%',
+                    xPercent: 0,
+                    yPercent: -50,
+                    x: 50,
+                    y: 0,
+                    textAlign: 'left'
+                });
+
+                tl.fromTo(contentRightRef.current,
+                    { opacity: 0, x: 50 },
+                    { opacity: 1, x: 0, duration: 1.5, ease: "power2.out" },
+                    "phase1+=1"
+                );
+            }
         });
 
         return () => mm.revert();
@@ -202,7 +166,7 @@ const ArduinoSection = () => {
                     margin: 0,
                     textWrap: 'balance'
                 }}>
-                    ENGINEERING
+                    ENGINEER
                 </h1>
             </div>
 
@@ -268,7 +232,7 @@ const ArduinoSection = () => {
                 <h2 style={{
                     fontFamily: "'Montserrat', sans-serif",
                     fontWeight: '900',
-                    fontSize: 'clamp(2rem, 4vw, 5rem)',
+                    fontSize: 'clamp(1.5rem, 5vw, 4rem)',
                     marginBottom: '20px',
                     textTransform: 'uppercase',
                     lineHeight: '1.1',
@@ -280,8 +244,8 @@ const ArduinoSection = () => {
                 <div style={{ width: '60px', height: '4px', backgroundColor: '#00979C', marginBottom: '30px', display: 'inline-block' }}></div>
                 <p style={{
                     fontFamily: "'Roboto', sans-serif",
-                    fontSize: 'clamp(1rem, 1.2vw, 1.2rem)',
-                    lineHeight: '1.8',
+                    fontSize: 'clamp(1rem, 2vw, 1.2rem)',
+                    lineHeight: '1.7',
                     fontWeight: '300',
                     color: '#ccc',
                     marginBottom: '40px'

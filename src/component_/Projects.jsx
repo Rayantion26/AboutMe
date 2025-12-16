@@ -1,11 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import n8nImage from '../assets/N8NImage.jpg';
+import rrBotQR from '../assets/RRBotQR.jpg';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Projects = () => {
+    const [showQR, setShowQR] = useState(false);
     const containerRef = useRef(null);
     const wrapperRef = useRef(null);
     const imageRef = useRef(null);
@@ -16,13 +19,17 @@ const Projects = () => {
     useEffect(() => {
         let mm = gsap.matchMedia();
 
-        mm.add("(min-width: 800px)", () => {
-            // DESKTOP
+        mm.add({
+            isDesktop: "(min-width: 800px)",
+            isMobile: "(max-width: 799px)"
+        }, (context) => {
+            let { isDesktop, isMobile } = context.conditions;
+
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top top",
-                    end: "+=800%",
+                    end: "+=400%",
                     scrub: 2,
                     pin: true,
                     anticipatePin: 1
@@ -39,25 +46,25 @@ const Projects = () => {
                 yPercent: -50,
             });
 
-            // Reset mobile styles
-            gsap.set(contentRightRef.current, {
-                top: '50%',
-                right: '5%',
-                left: 'auto',
-                bottom: 'auto',
-                width: '45%',
-                x: 50,
-                y: 0
-            });
+            // --- ANIMATION PHASES ---
 
+            // 1. Squircle Shape & Position
             tl.to(wrapperRef.current, {
-                width: '35vw',
-                height: '35vw',
-                borderRadius: '50px',
-                left: '25%',
+                width: isDesktop ? '35vw' : '90vw',
+                height: isDesktop ? '35vw' : '45vh',
+                borderRadius: isDesktop ? '50px' : '30px',
+                left: isDesktop ? '25%' : '50%',
+                top: isDesktop ? '50%' : '40%', // Move up on mobile
                 ease: "power2.inOut",
                 duration: 2
             }, "phase1")
+                .fromTo(imageRef.current, {
+                    scale: 1.6
+                }, {
+                    scale: 1.15,
+                    ease: "power2.inOut",
+                    duration: 2
+                }, "phase1")
                 .to(centerTextRef.current, {
                     opacity: 0,
                     scale: 0.8,
@@ -67,86 +74,54 @@ const Projects = () => {
                 .to(borderRef.current, {
                     opacity: 1,
                     scale: 1,
+                    width: isDesktop ? '37vw' : '92vw',
+                    height: isDesktop ? '37vw' : '46vh',
+                    left: isDesktop ? '25%' : '50%',
+                    top: isDesktop ? '50%' : '40%',
                     duration: 1,
                     ease: "power2.out"
-                }, "phase1+=1")
-                .fromTo(contentRightRef.current,
-                    { opacity: 0, x: 50 },
-                    { opacity: 1, x: 0, duration: 1.5, ease: "power2.out" },
-                    "phase1+=1"
-                );
-        });
+                }, "phase1+=1");
 
-        mm.add("(max-width: 799px)", () => {
-            // MOBILE
-            const tl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: containerRef.current,
-                    start: "top top",
-                    end: "+=800%",
-                    scrub: 2,
-                    pin: true,
-                    anticipatePin: 1
-                }
-            });
+            // 2. Content Animation
+            if (isMobile) {
+                gsap.set(contentRightRef.current, {
+                    top: '58%', // Moved up from 63% to ensure button visibility
+                    bottom: 'auto',
+                    left: '50%',
+                    right: 'auto',
+                    width: '85%',
+                    xPercent: -50,
+                    yPercent: 0,
+                    x: 0,
+                    textAlign: 'center',
+                    padding: '0 10px'
+                });
 
-            gsap.set(wrapperRef.current, {
-                width: '100vw',
-                height: '100vh',
-                borderRadius: '0px',
-                top: '50%',
-                left: '50%',
-                xPercent: -50,
-                yPercent: -50,
-            });
-
-            // Adjust border for mobile
-            gsap.set(borderRef.current, {
-                width: '85vw',
-                height: '85vw',
-                left: '50%',
-                top: '40%'
-            });
-
-            // Adjust content for mobile
-            gsap.set(contentRightRef.current, {
-                top: 'auto',
-                bottom: '5%',
-                left: '50%',
-                right: 'auto',
-                width: '90%',
-                xPercent: -50,
-                x: 0,
-                y: 50,
-                textAlign: 'center'
-            });
-
-            tl.to(wrapperRef.current, {
-                width: '80vw',
-                height: '80vw',
-                borderRadius: '40px',
-                left: '50%',
-                top: '40%',
-                ease: "power2.inOut",
-                duration: 2
-            }, "phase1")
-                .to(centerTextRef.current, {
-                    opacity: 0,
-                    scale: 0.8,
-                    duration: 1,
-                    ease: "power2.in",
-                }, "phase1")
-                .to(borderRef.current, {
-                    opacity: 1,
-                    scale: 1,
-                    duration: 1,
-                    ease: "power2.out"
-                }, "phase1+=1")
-                .fromTo(contentRightRef.current,
+                tl.fromTo(contentRightRef.current,
                     { opacity: 0, y: 50 },
                     { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" },
                     "phase1+=1"
                 );
+            } else {
+                gsap.set(contentRightRef.current, {
+                    top: '50%',
+                    right: '5%',
+                    left: 'auto',
+                    bottom: 'auto',
+                    width: '45%',
+                    xPercent: 0,
+                    yPercent: -50,
+                    x: 50,
+                    y: 0,
+                    textAlign: 'left'
+                });
+
+                tl.fromTo(contentRightRef.current,
+                    { opacity: 0, x: 50 },
+                    { opacity: 1, x: 0, duration: 1.5, ease: "power2.out" },
+                    "phase1+=1"
+                );
+            }
         });
 
         return () => mm.revert();
@@ -233,7 +208,7 @@ const Projects = () => {
             >
                 <img
                     ref={imageRef}
-                    src="https://placehold.co/1920x1080/ff6b6b/ffffff?text=N8N+Automation" // Placeholder
+                    src={n8nImage}
                     alt="N8N Project"
                     style={{
                         width: '100%',
@@ -262,7 +237,7 @@ const Projects = () => {
                 <h2 style={{
                     fontFamily: "'Montserrat', sans-serif",
                     fontWeight: '900',
-                    fontSize: 'clamp(1.5rem, 3.5vw, 4rem)', // Slightly smaller for long title
+                    fontSize: 'clamp(1.5rem, 5vw, 3.5rem)', // Optimized for mobile
                     marginBottom: '10px',
                     textTransform: 'uppercase',
                     lineHeight: '1.2',
@@ -274,8 +249,8 @@ const Projects = () => {
                 <div style={{ width: '60px', height: '4px', backgroundColor: '#ff6b6b', marginBottom: '30px', display: 'inline-block' }}></div>
                 <p style={{
                     fontFamily: "'Roboto', sans-serif",
-                    fontSize: 'clamp(1rem, 1.2vw, 1.2rem)',
-                    lineHeight: '1.8',
+                    fontSize: 'clamp(1rem, 2vw, 1.2rem)',
+                    lineHeight: '1.7',
                     fontWeight: '300',
                     color: '#ccc',
                     marginBottom: '40px'
@@ -289,7 +264,141 @@ const Projects = () => {
                     <span style={{ padding: '8px 20px', backgroundColor: '#222', borderRadius: '20px', fontSize: '0.9rem', color: '#fff' }}>LINE API</span>
                     <span style={{ padding: '8px 20px', backgroundColor: '#222', borderRadius: '20px', fontSize: '0.9rem', color: '#fff' }}>OCR</span>
                 </div>
+                <button
+                    onClick={() => setShowQR(true)}
+                    onMouseEnter={(e) => gsap.to(e.currentTarget, { boxShadow: '0 0 20px #ff6b6b', borderColor: '#ff6b6b', color: '#ff6b6b', scale: 1.05, duration: 0.3 })}
+                    onMouseLeave={(e) => gsap.to(e.currentTarget, { boxShadow: '0 0 0px transparent', borderColor: 'rgba(255, 255, 255, 0.3)', color: '#fff', scale: 1, duration: 0.3 })}
+                    style={{
+                        padding: '12px 30px',
+                        backgroundColor: 'transparent',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '30px',
+                        color: 'white',
+                        fontFamily: "'Roboto', sans-serif",
+                        fontWeight: '500',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        marginTop: '20px',
+                        transition: 'all 0.3s ease'
+                    }}
+                >
+                    SCAN TO ADD FRIEND
+                </button>
             </div>
+
+            {/* QR Code Modal */}
+            {showQR && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: 'rgba(0,0,0,0.9)',
+                        zIndex: 1000,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        opacity: 0,
+                        animation: 'fadeIn 0.5s forwards'
+                    }}
+                    onClick={() => setShowQR(false)}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: window.innerWidth < 800 ? 'column' : 'row',
+                            width: '80%',
+                            maxWidth: '1000px',
+                            maxHeight: '90vh',
+                            backgroundColor: '#111',
+                            border: '1px solid #333',
+                            borderRadius: '20px',
+                            overflow: 'hidden',
+                            boxShadow: '0 0 50px rgba(255, 107, 107, 0.2)'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* QR Image Section */}
+                        <div style={{
+                            flex: 1,
+                            backgroundColor: '#fff',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            padding: '20px'
+                        }}>
+                            <img
+                                src={rrBotQR}
+                                alt="RR Bot QR Code"
+                                style={{
+                                    maxWidth: '100%',
+                                    maxHeight: '400px',
+                                    objectFit: 'contain'
+                                }}
+                            />
+                        </div>
+
+                        {/* Text / Commands Section */}
+                        <div style={{
+                            flex: 1.2,
+                            padding: '40px',
+                            color: '#fff',
+                            overflowY: 'auto'
+                        }}>
+                            <h2 style={{
+                                fontFamily: "'Montserrat', sans-serif",
+                                fontSize: '2rem',
+                                color: '#ff6b6b',
+                                marginBottom: '20px'
+                            }}>
+                                RR BOT COMMANDS
+                            </h2>
+                            <p style={{ fontFamily: "'Roboto', sans-serif", color: '#ccc', marginBottom: '30px', lineHeight: '1.6' }}>
+                                Creating a new file on RR Bot needs a 2FA Code, so if you really want a personal file, <strong>CONTACT ME!!</strong><br />
+                                Since this is testing only, you can use file name <code>"purchasetest"</code> as a reference. Enjoy!!
+                            </p>
+
+                            <div style={{
+                                backgroundColor: '#222',
+                                padding: '20px',
+                                borderRadius: '10px',
+                                fontFamily: "'Roboto Mono', monospace",
+                                fontSize: '0.9rem',
+                                borderLeft: '4px solid #ff6b6b'
+                            }}>
+                                <div style={{ marginBottom: '10px' }}><span style={{ color: '#ff6b6b' }}>/help</span> - For help</div>
+                                <div style={{ marginBottom: '10px' }}><span style={{ color: '#ff6b6b' }}>/newpurchase</span> (file name) - For new purchases</div>
+                                <div style={{ marginBottom: '10px' }}><span style={{ color: '#ff6b6b' }}>/getfile</span> (file name) - For getting files</div>
+                                <div><span style={{ color: '#ff6b6b' }}>/create</span> (file name) (2FA Code) - For creating file</div>
+                            </div>
+
+                            <button
+                                onClick={() => setShowQR(false)}
+                                style={{
+                                    marginTop: '30px',
+                                    padding: '10px 20px',
+                                    backgroundColor: 'transparent',
+                                    border: '1px solid #555',
+                                    color: '#888',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                    fontFamily: "'Roboto', sans-serif"
+                                }}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                    <style>{`
+                        @keyframes fadeIn {
+                            to { opacity: 1; }
+                        }
+                    `}</style>
+                </div>
+            )}
+
         </section>
     );
 };

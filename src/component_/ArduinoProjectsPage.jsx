@@ -4,6 +4,15 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import FloatingLines from '../FloatingLines';
+import robotImage from '../assets/RobotLineTracker.jpg';
+import RFIDParking from '../assets/RFIDParking.jpg';
+import waterDispenserVideo from '../assets/AutomaticWaterDispenser.mp4';
+import waterDispenserImage from '../assets/AutomaticWaterDispenserImage.jpg';
+import trafficLightVideo from '../assets/TrafficLight.mp4';
+import lineTrackerVideo from '../assets/LineTrackerVideo.mp4';
+import hhmVideo1 from '../assets/HHMVideo1.mp4';
+import hhmVideo2 from '../assets/HHMVideo2.mp4';
+import rfidVideo from '../assets/RFIDVideo.mp4';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -13,31 +22,36 @@ const projectsList = [
         id: 1,
         title: "Automatic Line Tracker Robot",
         description: "A robot capable of following a visual line path autonomously using infrared sensors. It uses PID control logic for smooth line following and obstacle avoidance.",
-        image: "https://placehold.co/1920x1080/1a1a1a/ffffff?text=Line+Tracker+Robot"
+        image: robotImage,
+        video: lineTrackerVideo
     },
     {
         id: 2,
         title: "RFID Parking System",
-        description: "Automated parking entry/exit system using RFID tags and servo controls. Features real-time slot counting and LCD status display.",
-        image: "https://placehold.co/1920x1080/1a1a1a/ffffff?text=RFID+Parking"
+        description: "Automated parking entry/exit system using RFID tags and servo controls. Features LCD status display.",
+        image: RFIDParking,
+        video: rfidVideo
     },
     {
         id: 3,
         title: "Automatic Water Dispenser",
-        description: "Touchless water dispensing system utilizing ultrasonic distance sensors. Designed for hygiene and efficiency, delivering precise amounts of water.",
-        image: "https://placehold.co/1920x1080/1a1a1a/ffffff?text=Water+Dispenser"
+        description: "Touchless water dispensing system utilizing Infrared sensors. Designed for hygiene and efficiency, delivering precise amounts of water.",
+        image: waterDispenserImage,
+        video: waterDispenserVideo
     },
     {
         id: 4,
         title: "Traffic Lights Intersection",
         description: "Time-curated traffic control logic simulating a real-world 4-way intersection. Includes pedestrian crossing logic and emergency override modes.",
-        image: "https://placehold.co/1920x1080/1a1a1a/ffffff?text=Traffic+System"
+        image: null,
+        video: trafficLightVideo
     },
     {
         id: 5,
         title: "Height Counter",
-        description: "Ultrasonic measurement device capable of measuring height up to 220cm with high precision. Displays results on a digital 7-segment display.",
-        image: "https://placehold.co/1920x1080/1a1a1a/ffffff?text=Height+Counter"
+        description: "Ultrasonic measurement device capable of measuring height up to 220cm with high precision. Displays results on a LCD display.",
+        image: null,
+        videos: [hhmVideo1, hhmVideo2]
     }
 ];
 
@@ -79,20 +93,96 @@ const ProjectScrollSection = ({ project }) => {
     const centerTextRef = useRef(null);
     const contentRightRef = useRef(null);
     const borderRef = useRef(null);
+    const projectImgRef = useRef(null);
+    const videoRef = useRef(null);
+    const [activeVideoIndex, setActiveVideoIndex] = React.useState(0);
+
+    const videoSrc = project.video || (project.videos && project.videos[activeVideoIndex]);
+    const isMultiVideo = project.videos && project.videos.length > 1;
+
+    const switchVideo = (nextIndex) => {
+        // Fade Out
+        gsap.to(videoRef.current, {
+            opacity: 0,
+            duration: 0.5,
+            onComplete: () => {
+                setActiveVideoIndex(nextIndex);
+            }
+        });
+    };
+
+    // Watch for index change to Fade In
+    useEffect(() => {
+        if (isMultiVideo && videoRef.current) {
+            gsap.to(videoRef.current, { opacity: 1, duration: 0.5 });
+            // Only play if currently visible? Ideally yes, but click implies interaction.
+            // For safety, we can check logic or just let the visibility trigger handle pause if we scroll away.
+            videoRef.current.play();
+        }
+    }, [activeVideoIndex, isMultiVideo]);
 
     useEffect(() => {
-        let ctx = gsap.context(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        videoRef.current?.play();
+                    } else {
+                        videoRef.current?.pause();
+                    }
+                });
+            },
+            { threshold: 0 } // Play when ANY part is visible
+        );
+
+        if (containerRef.current) {
+            observer.observe(containerRef.current);
+        }
+
+        return () => {
+            if (containerRef.current) {
+                observer.unobserve(containerRef.current);
+            }
+        };
+    }, []);
+
+    const handleVideoEnd = () => {
+        if (isMultiVideo) {
+            const nextIndex = (activeVideoIndex + 1) % project.videos.length;
+            switchVideo(nextIndex);
+        }
+    };
+
+    const handleNextVideo = (e) => {
+        e.stopPropagation();
+        if (isMultiVideo) {
+            const nextIndex = (activeVideoIndex + 1) % project.videos.length;
+            switchVideo(nextIndex);
+        }
+    };
+
+    useEffect(() => {
+        let mm = gsap.matchMedia();
+
+        // Define clean shared trigger config if possible, but simpler to define TLs inside matchMedia
+        mm.add({
+            isDesktop: "(min-width: 800px)",
+            isMobile: "(max-width: 799px)"
+        }, (context) => {
+            let { isDesktop, isMobile } = context.conditions;
+
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top top",
-                    end: "+=350%",
+                    end: "+=500%",
                     scrub: 2,
                     pin: true,
                     anticipatePin: 1
                 }
             });
 
+            // Initial State (Shared mostly, but good to be explicit)
             gsap.set(wrapperRef.current, {
                 width: '100vw',
                 height: '100vh',
@@ -103,35 +193,93 @@ const ProjectScrollSection = ({ project }) => {
                 yPercent: -50,
             });
 
+            // --- ANIMATION PHASES ---
+
+            // 1. Squircle Shape & Position
             tl.to(wrapperRef.current, {
-                width: '35vw',
-                height: '35vw',
+                width: isDesktop ? '35vw' : '90vw',
+                height: isDesktop ? '35vw' : '45vh', // Square-ish on desktop, rectangular video aspect on mobile
                 borderRadius: '50px',
-                left: '25%',
+                left: isDesktop ? '25%' : '50%', // Left side vs Center
+                top: isDesktop ? '50%' : '30%',  // Center v Center-Top
                 ease: "power2.inOut",
                 duration: 2
-            }, "phase1")
-                .to(centerTextRef.current, {
-                    opacity: 0,
-                    scale: 0.8,
-                    duration: 1,
-                    ease: "power2.in",
-                }, "phase1")
-                .to(borderRef.current, {
-                    opacity: 1,
-                    scale: 1,
-                    duration: 1,
-                    ease: "power2.out"
-                }, "phase1+=1")
-                .fromTo(contentRightRef.current,
-                    { opacity: 0, x: 50 },
+            }, "phase1");
+
+            // 2. Hide Hero Title
+            tl.to(centerTextRef.current, {
+                opacity: 0,
+                scale: 0.8,
+                duration: 1,
+                ease: "power2.in",
+            }, "phase1");
+
+            // 3. Show Border
+            tl.to(borderRef.current, {
+                opacity: 1,
+                scale: 1,
+                width: isDesktop ? '37vw' : '92vw', // Responsive border size
+                height: isDesktop ? '37vw' : '46vh',
+                left: isDesktop ? '25%' : '50%',
+                top: isDesktop ? '50%' : '30%',
+                duration: 1,
+                ease: "power2.out"
+            }, "phase1+=1");
+
+            // 4. Show Details Text
+            // We need to set initial position for Details Text based on layout
+            if (isMobile) {
+                gsap.set(contentRightRef.current, {
+                    top: '55%', // Move closer to squircle (ends at ~53%)
+                    bottom: 'auto',
+                    left: '50%',
+                    right: 'auto',
+                    xPercent: -50,
+                    yPercent: 0,
+                    width: '85%', // Prevent edge touching
+                    textAlign: 'center',
+                    padding: '0 10px'
+                });
+
+                tl.fromTo(contentRightRef.current,
+                    { opacity: 0, y: 50 },
+                    { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" },
+                    "phase1+=1"
+                );
+            } else {
+                // Desktop
+                gsap.set(contentRightRef.current, {
+                    top: '50%',
+                    right: '5%',
+                    left: 'auto',
+                    xPercent: 0, // Reset any mobile percent
+                    yPercent: -50,
+                    width: '45%',
+                    textAlign: 'left'
+                });
+
+                tl.fromTo(contentRightRef.current,
+                    { opacity: 0, x: 50, y: 0 }, // Ensure y is 0
                     { opacity: 1, x: 0, duration: 1.5, ease: "power2.out" },
                     "phase1+=1"
                 );
+            }
 
-        }, containerRef);
+            // 5. Image Fade (if video exists)
+            if ((project.video || project.videos) && project.image) {
+                tl.to(projectImgRef.current, {
+                    opacity: 0,
+                    ease: "power2.inOut",
+                    duration: 2
+                }, "phase1-=0.5");
+            }
 
-        return () => ctx.revert();
+            return () => {
+                // Optional cleanup if needed inside context
+            };
+        });
+
+        return () => mm.revert();
     }, []);
 
     return (
@@ -163,11 +311,12 @@ const ProjectScrollSection = ({ project }) => {
                 <h1 style={{
                     fontFamily: "'Montserrat', sans-serif",
                     fontWeight: '900',
-                    fontSize: 'clamp(2rem, 5vw, 6rem)',
+                    fontSize: 'clamp(1.8rem, 5vw, 5rem)',
                     color: 'white',
                     letterSpacing: '0.05em',
                     margin: 0,
-                    padding: '0 20px'
+                    padding: '0 20px',
+                    textWrap: 'balance'
                 }}>
                     {project.title.toUpperCase()}
                 </h1>
@@ -201,15 +350,92 @@ const ProjectScrollSection = ({ project }) => {
                     backgroundColor: '#1a1a1a'
                 }}
             >
-                <img
-                    src={project.image}
-                    alt={project.title}
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                    }}
-                />
+                {(project.video || project.videos) ? (
+                    <>
+                        <video
+                            ref={videoRef}
+                            key={isMultiVideo ? 'multi' : videoSrc} // Keep same element for multi to animate opacity
+                            src={videoSrc}
+                            autoPlay
+                            loop={!isMultiVideo}
+                            muted
+                            playsInline
+                            preload="auto" // Fix startup lag/stutter
+                            onCanPlay={() => videoRef.current?.play()}
+                            onLoadedMetadata={(e) => {
+                                // If it's a no-image project (Traffic Light), skip black frame
+                                if (!project.image) e.target.currentTime = 0.5;
+                            }}
+                            onEnded={handleVideoEnd}
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                zIndex: 1
+                            }}
+                        />
+
+                        {isMultiVideo && (
+                            <div
+                                onClick={handleNextVideo}
+                                style={{
+                                    position: 'absolute',
+                                    bottom: '30px',
+                                    right: '30px',
+                                    zIndex: 20,
+                                    width: '50px',
+                                    height: '50px',
+                                    borderRadius: '50%',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                    backdropFilter: 'blur(5px)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    border: '1px solid rgba(255,255,255,0.3)'
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.4)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'; }}
+                            >
+                                <span style={{ color: 'white', fontSize: '24px', lineHeight: '1' }}>→</span>
+                            </div>
+                        )}
+                        {project.image && (
+                            <img
+                                ref={projectImgRef}
+                                src={project.image}
+                                alt={project.title}
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    zIndex: 2
+                                }}
+                            />
+                        )}
+                    </>
+                ) : (
+                    <img
+                        ref={projectImgRef}
+                        src={project.image}
+                        alt={project.title}
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                        }}
+                    />
+                )}
             </div>
 
             <div
@@ -228,19 +454,20 @@ const ProjectScrollSection = ({ project }) => {
                 <h2 style={{
                     fontFamily: "'Montserrat', sans-serif",
                     fontWeight: '900',
-                    fontSize: 'clamp(2rem, 4vw, 4rem)',
+                    fontSize: 'clamp(1.5rem, 4vw, 3.5rem)',
                     marginBottom: '20px',
                     textTransform: 'uppercase',
                     lineHeight: '1.1',
-                    color: '#fff'
+                    color: '#fff',
+                    textWrap: 'balance'
                 }}>
                     Project Details
                 </h2>
                 <div style={{ width: '60px', height: '4px', backgroundColor: '#fff', marginBottom: '30px' }}></div>
                 <p style={{
                     fontFamily: "'Roboto', sans-serif",
-                    fontSize: '1.2rem',
-                    lineHeight: '1.8',
+                    fontSize: 'clamp(1rem, 2vw, 1.2rem)',
+                    lineHeight: '1.7',
                     fontWeight: '300',
                     color: '#ccc'
                 }}>
@@ -254,16 +481,23 @@ const ProjectScrollSection = ({ project }) => {
 const GalleryCard = ({ project, onClick }) => {
     const cardRef = useRef(null);
     const bgRef = useRef(null);
+    const imageLayerRef = useRef(null);
 
     const onEnter = () => {
         gsap.to(cardRef.current, {
             y: -10,
             borderColor: '#00ffff',
             borderRadius: '40px',
-            duration: 0.4,
-            ease: 'power2.out',
-            overwrite: 'auto'
         });
+
+        const video = bgRef.current.querySelector('video');
+        if (video) video.play();
+
+        // If explicitly overlaying an image over video, fade it out
+        if ((project.video || project.videos) && project.image && imageLayerRef.current) {
+            gsap.to(imageLayerRef.current, { opacity: 0, duration: 0.5, ease: 'power2.out' });
+        }
+
         gsap.fromTo(cardRef.current,
             { boxShadow: '0 0 10px rgba(0, 255, 255, 0.4)' },
             {
@@ -283,6 +517,18 @@ const GalleryCard = ({ project, onClick }) => {
 
     const onLeave = () => {
         gsap.killTweensOf(cardRef.current);
+
+        const video = bgRef.current.querySelector('video');
+        if (video) {
+            video.pause();
+            // video.currentTime = 0; // Don't reset, so we keep a nice freeze-frame
+        }
+
+        // Restore image opacity
+        if ((project.video || project.videos) && project.image && imageLayerRef.current) {
+            gsap.to(imageLayerRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out' });
+        }
+
         gsap.to(cardRef.current, {
             y: 0,
             borderColor: 'transparent',
@@ -324,12 +570,50 @@ const GalleryCard = ({ project, onClick }) => {
                     left: 0,
                     width: '100%',
                     height: '100%',
-                    backgroundImage: `url(${project.image})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
                     transform: 'scale(1.2)'
                 }}
-            ></div>
+            >
+                {/* Render Video at zIndex 1 if it exists */}
+                {(project.video || (project.videos && project.videos[0])) && (
+                    <video
+                        src={project.video || project.videos[0]}
+                        muted
+                        loop
+                        playsInline
+                        preload="metadata"
+                        onLoadedMetadata={(e) => { e.target.currentTime = 0.5; }} // Skip potential black start frame
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            zIndex: 1
+                        }}
+                    />
+                )}
+
+                {/* Render Image at zIndex 2 if it exists (covers video) */}
+                {project.image && (
+                    <div
+                        ref={imageLayerRef}
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            backgroundImage: `url(${project.image})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            zIndex: 2,
+                            backgroundColor: '#1a1a1a' // Prevent see-through on load
+                        }}
+                    ></div>
+                )}
+            </div>
+
             <div style={{
                 position: 'absolute',
                 top: 0,
@@ -340,14 +624,16 @@ const GalleryCard = ({ project, onClick }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: 2
+                zIndex: 3, // Above image/video
+                pointerEvents: 'none' // Allow hover to pass through to card
             }}>
                 <h3 style={{
                     fontFamily: "'Montserrat', sans-serif",
                     fontSize: '1.2rem',
                     color: '#fff',
                     textAlign: 'center',
-                    padding: '10px'
+                    padding: '10px',
+                    textWrap: 'balance'
                 }}>
                     {project.title}
                 </h3>
@@ -427,42 +713,22 @@ const ArduinoProjectsPage = () => {
     return (
         <div ref={pageRef} className="arduino-page-wrapper" style={{ backgroundColor: '#000', color: 'white', position: 'relative', opacity: 0 }}>
 
-            {/* Sticky Nav Container */}
-            <div style={{ position: 'fixed', bottom: '40px', left: '40px', zIndex: 100, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Sticky Nav Container - Moved to CSS classes */}
+            <div className="floating-nav-container">
                 <button
-                    onClick={() => fadeScrollTo('#gallery')} // Using fade transitions
+                    onClick={() => fadeScrollTo('#gallery')}
                     onMouseEnter={(e) => neonHoverEffect(e.currentTarget, '#00979C')}
                     onMouseLeave={(e) => removeNeonEffect(e.currentTarget)}
-                    style={{
-                        padding: '15px 30px',
-                        backgroundColor: '#00979C',
-                        color: '#fff',
-                        border: '2px solid transparent',
-                        borderRadius: '30px',
-                        cursor: 'pointer',
-                        fontSize: '1rem',
-                        fontFamily: "'Inter', sans-serif",
-                        boxShadow: '0 5px 20px rgba(0,0,0,0.5)',
-                    }}
+                    className="floating-nav-btn"
                 >
                     ↓ Gallery
                 </button>
 
                 <button
-                    onClick={handleBack} // Fade out mechanism
+                    onClick={handleBack}
                     onMouseEnter={(e) => neonHoverEffect(e.currentTarget, '#00979C')}
                     onMouseLeave={(e) => removeNeonEffect(e.currentTarget)}
-                    style={{
-                        padding: '15px 30px',
-                        backgroundColor: '#00979C',
-                        color: '#fff',
-                        border: '2px solid transparent',
-                        borderRadius: '30px',
-                        cursor: 'pointer',
-                        fontSize: '1rem',
-                        fontFamily: "'Inter', sans-serif",
-                        boxShadow: '0 5px 20px rgba(0,0,0,0.5)',
-                    }}
+                    className="floating-nav-btn"
                 >
                     ← Back to Home
                 </button>
