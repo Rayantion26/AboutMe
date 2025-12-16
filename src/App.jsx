@@ -100,14 +100,14 @@ const Home = () => {
   // Initialize Lenis for smooth scrolling
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 0.6, // Very heavy friction to stop "slipping"
+      duration: 0.8, // Very heavy friction to stop "slipping"
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
       gestureDirection: 'vertical',
       smooth: true,
-      mouseMultiplier: 0.3, // Very controlled
+      mouseMultiplier: 0.15, // Very controlled
       smoothTouch: false,
-      touchMultiplier: 0.5, // 1/2 speed swipes for maximum control
+      touchMultiplier: 0.4, // 1/2 speed swipes for maximum control
       infinite: false,
     });
     lenisRef.current = lenis;

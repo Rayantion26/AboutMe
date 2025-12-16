@@ -29,7 +29,7 @@ const Projects = () => {
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top top",
-                    end: "+=400%",
+                    end: isDesktop ? "+=400%" : "+=200%",
                     scrub: 2,
                     pin: true,
                     anticipatePin: 1
@@ -85,7 +85,7 @@ const Projects = () => {
             // 2. Content Animation
             if (isMobile) {
                 gsap.set(contentRightRef.current, {
-                    top: '58%', // Moved up from 63% to ensure button visibility
+                    top: '70%', // Moved up from 63% to ensure button visibility
                     bottom: 'auto',
                     left: '50%',
                     right: 'auto',

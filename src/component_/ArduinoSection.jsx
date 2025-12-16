@@ -29,7 +29,7 @@ const ArduinoSection = () => {
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top top",
-                    end: "+=800%",
+                    end: isDesktop ? "+=800%" : "+=250%",
                     scrub: 2,
                     pin: true,
                     anticipatePin: 1
@@ -78,7 +78,7 @@ const ArduinoSection = () => {
             // 2. Content Animation
             if (isMobile) {
                 gsap.set(contentRightRef.current, {
-                    top: '63%', // Move closer to squircle
+                    top: '70%', // Move closer to squircle
                     bottom: 'auto',
                     left: '50%',
                     right: 'auto',
