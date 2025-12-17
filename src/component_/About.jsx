@@ -155,8 +155,7 @@ const About = () => {
                         fontFamily: "'Inter', sans-serif",
                         marginBottom: '20px'
                     }}>
-                        Hello! I'm Aaron, a passionate developer with a knack for creating interactive and visually stunning digital experiences.
-                        I love blending code with creativity to build things that live on the web.
+                        I thrive on exploring the unknown in technology. That curiosity is what drove me to build this interactive website—a playground to test new ideas and push boundaries.
                     </p>
                     <p style={{
                         fontSize: 'clamp(1rem, 2vw, 1.2rem)',
@@ -164,7 +163,7 @@ const About = () => {
                         color: '#ccc',
                         fontFamily: "'Inter', sans-serif"
                     }}>
-                        When I'm not coding, you can find me tinkering with Arduino projects, automating my life with n8n, or exploring new technologies.
+                        Whether it's tinkering with Arduino or automating workflows with n8n, I dive into these tools simply because I love them. Ultimately, technology isn't just what I do; it has grown on me to become a fundamental part of who I am.
                     </p>
                 </div>
             </div>

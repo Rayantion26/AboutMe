@@ -252,9 +252,7 @@ const AudiophileSection = () => {
                     fontWeight: '300',
                     color: '#ccc'
                 }}>
-                    Immerse yourself in the purest sound. My journey into high-fidelity audio involves custom-tuned in-ear monitors,
-                    precision DACs, and a relentless pursuit of the perfect frequency response. It's not just about hearing music;
-                    it's about feeling every vibration and nuance as the artist intended.
+                    Music is my escape, but it's the technology that draws me in. From tuning custom in-ear monitors to analyzing frequency response graphs, I love the engineering challenge behind high-fidelity audio. It's the perfect blend of technical precision and artistic expression.
                 </p>
             </div>
         </section>

@@ -178,6 +178,19 @@ h4 {
 
 /* --- RESTORED STYLES END --- */
 
+/* Ensure all content sections are above FloatingLines */
+#about,
+#projects,
+#audiophile,
+#skills,
+#resume,
+#socials {
+  position: relative;
+  z-index: 5;
+  background-color: #000;
+  /* Ensure opaque background if needed */
+}
+
 /* Global / Desktop Defaults */
 .hamburger-icon {
   display: none;

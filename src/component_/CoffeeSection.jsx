@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import coffeeVideo1 from '../assets/CoffeeVideo1.mp4';
@@ -28,7 +29,8 @@ const CoffeeSection = () => {
     const contentRightRef = useRef(null);
     const borderRef = useRef(null);
     const videoRef = useRef(null);
-    const coverImageRef = useRef(null); // New Cover Image Ref
+    const coverImageRef = useRef(null);
+    const hintRef = useRef(null); // Ref for the hint
 
     // State
     const [activeIndex, setActiveIndex] = useState(0);
@@ -134,6 +136,13 @@ const CoffeeSection = () => {
                     { opacity: 1, x: 0, duration: 1.5, ease: "power2.out" },
                     "phase1+=1"
                 );
+
+                // Desktop Only: Fade in Hint
+                tl.to(hintRef.current, {
+                    opacity: 1,
+                    duration: 1,
+                    ease: "power2.out"
+                }, "phase1+=2");
             }
         });
 
@@ -243,12 +252,38 @@ const CoffeeSection = () => {
                 }}
             ></div>
 
+            {/* Hint (Desktop Only) */}
+            <div
+                ref={hintRef}
+                style={{
+                    position: 'absolute',
+                    top: 'calc(50% + 20vw)', // Below the squircle (35vw/2 = 17.5vw)
+                    left: '25%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 5,
+                    opacity: 0, // Hidden until GSAP shows it
+                    pointerEvents: 'none',
+                    textAlign: 'center',
+                    color: 'rgba(255, 255, 255, 0.6)',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.9rem',
+                    letterSpacing: '0.05em'
+                }}
+            >
+                <div>Click to expand</div>
+                <div style={{ fontSize: '1.2rem', marginTop: '-5px' }}>↑</div>
+            </div>
+
             {/* SQUIRCLE MEDIA WRAPPER */}
             <div
                 ref={wrapperRef}
                 onMouseEnter={() => setHoveringSquircle(true)}
                 onMouseLeave={() => setHoveringSquircle(false)}
-                onClick={() => setIsLightboxOpen(true)}
+                onClick={() => {
+                    const newState = { lightboxOpen: true };
+                    window.history.pushState(newState, "", "");
+                    setIsLightboxOpen(true);
+                }}
                 onTouchStart={(e) => {
                     touchEnd.current = null;
                     touchStart.current = e.targetTouches[0].clientX;
@@ -412,8 +447,7 @@ const CoffeeSection = () => {
                     fontFamily: "'Roboto', sans-serif", fontSize: 'clamp(1rem, 2vw, 1.2rem)',
                     lineHeight: '1.7', fontWeight: '300', color: '#ccc'
                 }}>
-                    From sourcing the finest single-origin beans to mastering the precise variables of extraction.
-                    Coffee is a ritual of patience and precision, exploring complex flavor profiles found in every roast.
+                    It's more than just caffeine; it's a daily ritual of patience and precision. From dialing in the grind size to perfecting the pour-over technique, I love the process of extracting complex flavors from a simple bean.
                 </p>
             </div>
 
@@ -422,7 +456,12 @@ const CoffeeSection = () => {
                 <Lightbox
                     mediaList={mediaList}
                     startIndex={activeIndex}
-                    onClose={() => setIsLightboxOpen(false)}
+                    onClose={(shouldGoBack = true) => {
+                        setIsLightboxOpen(false);
+                        if (shouldGoBack) {
+                            window.history.back();
+                        }
+                    }}
                 />
             )}
         </section>
@@ -435,10 +474,32 @@ const Lightbox = ({ mediaList, startIndex, onClose }) => {
     const media = mediaList[currentIndex];
     const contentRef = useRef(null);
 
-    // Disable Scroll when open
+    // History & Scroll Lock
     useEffect(() => {
         document.body.style.overflow = 'hidden';
-        return () => document.body.style.overflow = 'auto';
+        if (window.lenis) window.lenis.stop();
+
+        const handlePopState = (event) => {
+            // If we get a popstate event (Back button), we just close.
+            // The state is already popped by the browser.
+            onClose(false); // Pass false to skip history.back()
+        };
+
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                onClose(true); // Go back in history
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.body.style.overflow = 'auto';
+            if (window.lenis) window.lenis.start();
+            window.removeEventListener('popstate', handlePopState);
+            window.removeEventListener('keydown', handleKeyDown);
+        };
     }, []);
 
     // Animation Effect
@@ -460,28 +521,66 @@ const Lightbox = ({ mediaList, startIndex, onClose }) => {
     };
 
     const prev = (e) => {
-        e.stopPropagation();
-        animateButton(e.currentTarget);
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (e && e.currentTarget && e.currentTarget.style) animateButton(e.currentTarget);
         setCurrentIndex((prev) => (prev === 0 ? mediaList.length - 1 : prev - 1));
     };
     const next = (e) => {
-        e.stopPropagation();
-        animateButton(e.currentTarget);
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (e && e.currentTarget && e.currentTarget.style) animateButton(e.currentTarget);
         setCurrentIndex((prev) => (prev + 1) % mediaList.length);
     };
 
-    return (
+    // Swipe Logic
+    const touchStart = useRef(null);
+    const touchEnd = useRef(null);
+
+    const handleTouchStart = (e) => {
+        touchEnd.current = null;
+        touchStart.current = e.targetTouches ? e.targetTouches[0].clientX : e.clientX;
+    };
+
+    const handleTouchMove = (e) => {
+        touchEnd.current = e.targetTouches ? e.targetTouches[0].clientX : e.clientX;
+    };
+
+    const handleTouchEnd = () => {
+        if (!touchStart.current || !touchEnd.current) return;
+        const distance = touchStart.current - touchEnd.current;
+        const isLeftSwipe = distance > 50;
+        const isRightSwipe = distance < -50;
+
+        if (isLeftSwipe) {
+            next(new Event('swipe')); // Mock event
+        } else if (isRightSwipe) {
+            prev(new Event('swipe'));
+        }
+    };
+
+    return ReactDOM.createPortal(
         <div
             style={{
                 position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
                 backgroundColor: 'rgba(0,0,0,0.95)', zIndex: 99999,
                 display: 'flex', justifyContent: 'center', alignItems: 'center'
             }}
-            onClick={onClose}
+            onClick={() => onClose(true)} // Default behavior: go back in history if needed
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleTouchStart}
+            onMouseMove={(e) => {
+                // Only track move if button is pressed (simple check)
+                if (e.buttons === 1) handleTouchMove(e);
+            }}
+            onMouseUp={handleTouchEnd}
         >
             {/* Close */}
             <div
-                onClick={onClose}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onClose(true);
+                }}
                 style={{
                     position: 'absolute', top: '30px', right: '30px',
                     cursor: 'pointer', color: '#fff', fontSize: '2rem', zIndex: 10000
@@ -544,7 +643,8 @@ const Lightbox = ({ mediaList, startIndex, onClose }) => {
                     />
                 )}
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

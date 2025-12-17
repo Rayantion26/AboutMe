@@ -264,7 +264,7 @@ const CustomCursor = () => {
                     borderRadius: '50%',
                     backgroundColor: 'white',
                     pointerEvents: 'none',
-                    zIndex: 9999,
+                    zIndex: 1000001,
                     mixBlendMode: 'normal'
                 }}
             />
@@ -280,7 +280,7 @@ const CustomCursor = () => {
                     border: '2px solid white',
                     backgroundColor: 'transparent',
                     pointerEvents: 'none',
-                    zIndex: 9998,
+                    zIndex: 1000000,
                     mixBlendMode: 'screen', // Default blending
                     transition: 'opacity 0.3s ease'
                 }}

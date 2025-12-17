@@ -93,11 +93,17 @@ const SectionTitlePage = ({ title }) => {
   );
 };
 
+// FloatingLines Configuration (Static to prevent WebGL context thrashing)
+const FL_ENABLED_WAVES = ['top', 'middle', 'bottom'];
+const FL_LINE_COUNT = [12, 5, 4];
+const FL_LINE_DISTANCE = [20, 22, 18];
+
 const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false); // New state for fade-out
 
+  const [linesPaused, setLinesPaused] = useState(false);
   const floatingLinesContainerRef = useRef(null);
   const lenisRef = useRef(null);
   const navigate = useNavigate();
@@ -120,6 +126,7 @@ const Home = () => {
       infinite: false,
     });
     lenisRef.current = lenis;
+    window.lenis = lenis; // Expose for global control (e.g. Lightbox)
 
     // Connect Lenis to GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
@@ -132,25 +139,27 @@ const Home = () => {
     gsap.ticker.add(updateLenis);
     gsap.ticker.lagSmoothing(0); // Disable lag smoothing for instant response
 
-    // --- Floating Lines Fade via GSAP (Optimized) ---
-    // Fade out ONLY when entering Projects section, keeping it visible for "About"
+    // --- Floating Lines Fade via GSAP ---
     if (floatingLinesContainerRef.current) {
+      // 1. Visual Fade
       gsap.to(floatingLinesContainerRef.current, {
         opacity: 0,
         ease: "none",
         scrollTrigger: {
           trigger: "#projects",
-          start: "top bottom", // Start fading when projects section enters viewport
-          end: "center center",   // Finish fading when projects is centered (smoother)
+          start: "top bottom",
+          end: "center center",
           scrub: true,
-          onLeave: () => {
-            // Disable rendering completely when off-screen
-            if (floatingLinesContainerRef.current) floatingLinesContainerRef.current.style.display = 'none';
-          },
-          onEnterBack: () => {
-            if (floatingLinesContainerRef.current) floatingLinesContainerRef.current.style.display = 'block';
-          }
         }
+      });
+
+      // 2. Logic Pause (Performance)
+      ScrollTrigger.create({
+        trigger: "#projects",
+        start: "center center", // When opacity reaches 0
+        end: "max",
+        onEnter: () => setLinesPaused(true),
+        onLeaveBack: () => setLinesPaused(false) // Resume when compiling back up
       });
     }
 
@@ -261,17 +270,17 @@ const Home = () => {
 
       <div
         ref={floatingLinesContainerRef}
-        style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 0, transition: 'opacity 0.1s ease-out' }}
+        style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 0, backgroundColor: '#000' }}
       >
         <FloatingLines
-          enabledWaves={['top', 'middle', 'bottom']}
-          lineCount={[12, 5, 4]}
-          lineDistance={[20, 22, 18]}
+          enabledWaves={FL_ENABLED_WAVES}
+          lineCount={FL_LINE_COUNT}
+          lineDistance={FL_LINE_DISTANCE}
           bendRadius={10.0}
           bendStrength={-1}
           interactive={true}
           parallax={true}
-        // Paused prop removed, internal handling handles visibility now
+          paused={linesPaused}
         />
       </div>
 

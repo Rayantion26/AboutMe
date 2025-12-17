@@ -22,35 +22,35 @@ const projectsList = [
     {
         id: 1,
         title: "Automatic Line Tracker Robot",
-        description: "A robot capable of following a visual line path autonomously using infrared sensors. It uses PID control logic for smooth line following and obstacle avoidance.",
+        description: "I built this robot to understand how sensors interact with real-world environments. Using PID control logic, I programmed it to autonomously follow a visual path while avoiding obstacles.",
         image: robotImage,
         video: lineTrackerVideo
     },
     {
         id: 2,
         title: "RFID Parking System",
-        description: "Automated parking entry/exit system using RFID tags and servo controls. Features LCD status display.",
+        description: "Curious about automation systems, I created this miniature parking lot. It uses RFID tags to authenticate entries and servo motors to control the barriers, mimicking real-world logic.",
         image: RFIDParking,
         video: rfidVideo
     },
     {
         id: 3,
         title: "Automatic Water Dispenser",
-        description: "Touchless water dispensing system utilizing Infrared sensors. Designed for hygiene and efficiency, delivering precise amounts of water.",
+        description: "I wanted to build something practical for hygiene. This project uses infrared sensors to detect a glass and dispense a precise amount of water without any physical contact.",
         image: waterDispenserImage,
         video: waterDispenserVideo
     },
     {
         id: 4,
         title: "Traffic Lights Intersection",
-        description: "Time-curated traffic control logic simulating a real-world 4-way intersection. Includes pedestrian crossing logic and emergency override modes.",
+        description: "Simulating a 4-way intersection taught me about state machine logic. I implemented realistic timing sequences, pedestrian crossings, and emergency override modes to handle complex flow control.",
         image: null,
         video: trafficLightVideo
     },
     {
         id: 5,
         title: "Height Counter",
-        description: "Ultrasonic measurement device capable of measuring height up to 220cm with high precision. Displays results on a LCD display.",
+        description: "I developed this ultrasonic measurement tool to see how accurate cheap sensors could be. It measures height up to 220cm with surprising precision and displays it on an LCD.",
         image: null,
         videos: [hhmVideo1, hhmVideo2]
     }
@@ -204,7 +204,7 @@ const ProjectScrollSection = ({ project, priority = false }) => {
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top top",
-                    end: "+=500%",
+                    end: "+=250%",
                     scrub: 0.5, // Reduced from 2 to make animation follow finger tighter
                     pin: true,
                     anticipatePin: 1
@@ -690,14 +690,15 @@ const ArduinoProjectsPage = () => {
         window.scrollTo(0, 0);
 
         const lenis = new Lenis({
-            duration: 0.8, // Heavy friction
+            duration: 1.0,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             direction: 'vertical',
             gestureDirection: 'vertical',
             smooth: true,
-            mouseMultiplier: 0.15, // Heavy mouse feel
+            mouseMultiplier: 0.8,
             smoothTouch: false,
-            touchMultiplier: 0.4, // Heavy swipe (geared down)
+            touchMultiplier: 0.8,
+            infinite: false,
         });
         lenisRef.current = lenis;
 
