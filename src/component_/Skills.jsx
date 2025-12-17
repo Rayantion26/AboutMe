@@ -1,11 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import * as d3 from 'd3-shape';
 
-gsap.registerPlugin(ScrollTrigger);
-
-const POINTS_COUNT = 20;
+const POINTS_COUNT = 14; // Optimized from 20
 
 const layersData = [
     {
@@ -42,15 +38,33 @@ const layersData = [
 
 const Skills = () => {
     const containerRef = useRef(null);
+    const sectionRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 1000, height: 600 });
     const [time, setTime] = useState(0);
 
-    // State for React rendering (Text visibility)
+    // State for interaction
     const [hoveredLayer, setHoveredLayer] = useState(null);
 
-    // Refs for Animation Logic (Mutable, doesn't trigger render itself)
+    // Mutable refs for smooth animation values
     const hoveredLayerRef = useRef(null);
     const zoomWeights = useRef({ dev: 0, automation: 0, hardware: 0, creative: 0, productivity: 0 });
+
+    const [isInView, setIsInView] = useState(false);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setIsInView(entry.isIntersecting);
+            },
+            { threshold: 0 }
+        );
+
+        if (sectionRef.current) observer.observe(sectionRef.current);
+        return () => {
+            if (sectionRef.current) observer.unobserve(sectionRef.current);
+            observer.disconnect();
+        };
+    }, []);
 
     useEffect(() => {
         const handleResize = () => {
@@ -61,9 +75,8 @@ const Skills = () => {
                 });
             }
         };
-        handleResize(); // Initial measurement
+        handleResize();
         window.addEventListener('resize', handleResize);
-
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
@@ -73,24 +86,27 @@ const Skills = () => {
         .y1(d => d[1])
         .curve(d3.curveBasis), [dimensions.width]);
 
-    // Data Calculation
-    const currentPaths = useMemo(() => {
-        const rawData = Array.from({ length: POINTS_COUNT }, (_, i) => {
-            const point = { x: i };
+    const isMobile = dimensions.width < 600;
 
-            // Calculate Global Focus Factor (0 to 1) based on sum of weights
-            const totalWeight = Object.values(zoomWeights.current).reduce((a, b) => a + b, 0);
-            const focusFactor = Math.min(1, totalWeight);
+    // Data Calculation (Re-runs on 'time' update = standard React Frame Loop)
+    const currentPaths = useMemo(() => {
+        // Prepare raw data
+        const rawData = new Array(POINTS_COUNT);
+
+        // Calculate Total Focus for overall scaling
+        const totalWeight = Object.values(zoomWeights.current).reduce((a, b) => a + b, 0);
+        const focusFactor = Math.min(1, totalWeight);
+
+        for (let i = 0; i < POINTS_COUNT; i++) {
+            const point = { x: i };
 
             layersData.forEach((layer, idx) => {
                 const layerWeight = zoomWeights.current[layer.id] || 0;
 
-                // Heights
-                const idleHeight = 60; // Height when nobody is looking
-                const activeHeight = 250; // Height when THIS layer is focused
-                const suppressedHeight = 25; // Height when ANOTHER layer is focused
+                const idleHeight = isMobile ? 50 : 60;
+                const activeHeight = isMobile ? 200 : 250;
+                const suppressedHeight = 25;
 
-                // Blending Logic:
                 const targetFocusHeight = suppressedHeight + (layerWeight * (activeHeight - suppressedHeight));
                 const baseHeight = idleHeight + (focusFactor * (targetFocusHeight - idleHeight));
 
@@ -98,11 +114,11 @@ const Skills = () => {
                 const wave1 = Math.sin((i * 0.4) + (t * 0.1) + idx) * 30;
                 const wave2 = Math.cos((i * 0.3) - (t * 0.15)) * 25;
 
-                // Soft minimum
-                point[layer.id] = Math.max(20, baseHeight + wave1 + wave2);
+                const minThickness = isMobile ? 45 : 20;
+                point[layer.id] = Math.max(minThickness, baseHeight + wave1 + wave2);
             });
-            return point;
-        });
+            rawData[i] = point;
+        }
 
         const stack = d3.stack()
             .keys(layersData.map(l => l.id))
@@ -110,13 +126,14 @@ const Skills = () => {
 
         const stackedData = stack(rawData);
 
+        // Map to displayable paths
         return stackedData.map((layer, index) => {
             const processedLayer = layer.map(point => [
                 point[0] + dimensions.height / 2,
                 point[1] + dimensions.height / 2
             ]);
 
-            // Calculate center
+            // Calculate center for text
             const midStart = Math.floor(POINTS_COUNT * 0.4);
             const midEnd = Math.floor(POINTS_COUNT * 0.6);
             let ySum = 0;
@@ -137,33 +154,36 @@ const Skills = () => {
                 yCenter: yCenter
             };
         });
-    }, [time, dimensions, areaGenerator]);
+    }, [time, dimensions, areaGenerator, isMobile]);
 
 
+    // Animation Loop
     useEffect(() => {
         let animationFrame;
         const animate = () => {
-            // 1. Update Time
+            if (!isInView) return;
+
+            // 1. Update Time State -> Triggers Re-render
             setTime(t => t + 0.08);
 
-            // 2. Interpolate Zoom Weights using Ref (no dep loop)
+            // 2. Interpolate Zoom Weights (Ref)
             layersData.forEach(layer => {
-                // Target is based on the Ref, not state
                 const isHovered = hoveredLayerRef.current === layer.id;
                 const target = isHovered ? 1 : 0;
                 const current = zoomWeights.current[layer.id];
-
-                // LERP (0.08 for smooth/slow transition)
                 zoomWeights.current[layer.id] = current + (target - current) * 0.08;
             });
 
             animationFrame = requestAnimationFrame(animate);
         };
-        animationFrame = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(animationFrame);
-    }, []);
 
-    // Unified Handler
+        if (isInView) {
+            animationFrame = requestAnimationFrame(animate);
+        }
+
+        return () => cancelAnimationFrame(animationFrame);
+    }, [isInView]);
+
     const updateInteraction = (id) => {
         hoveredLayerRef.current = id;
         setHoveredLayer(id);
@@ -177,6 +197,7 @@ const Skills = () => {
     return (
         <section
             id="skills"
+            ref={sectionRef}
             style={{
                 height: '100vh',
                 backgroundColor: '#000',
@@ -231,10 +252,12 @@ const Skills = () => {
                             return (
                                 <g
                                     key={layer.id}
-                                    onClick={() => handleLayerClick(layer.id)}
-                                    // Combine click/hover behavior elegantly
-                                    onMouseEnter={() => updateInteraction(layer.id)}
-                                    onMouseLeave={() => updateInteraction(null)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleLayerClick(layer.id);
+                                    }}
+                                    onMouseEnter={() => !isMobile && updateInteraction(layer.id)}
+                                    onMouseLeave={() => !isMobile && updateInteraction(null)}
                                     style={{
                                         cursor: 'pointer',
                                     }}
@@ -248,7 +271,6 @@ const Skills = () => {
                                         style={{ transition: 'fill-opacity 0.3s, stroke 0.3s' }}
                                     />
 
-                                    {/* Category Label (Visible when Idle) */}
                                     <text
                                         x={dimensions.width / 2}
                                         y={layer.yCenter}
@@ -260,16 +282,15 @@ const Skills = () => {
                                         style={{
                                             pointerEvents: 'none',
                                             textShadow: '0 2px 4px rgba(0,0,0,0.8)',
-                                            fontSize: '20px',
+                                            fontSize: isMobile ? '12px' : '20px',
                                             letterSpacing: '0.05em',
-                                            opacity: Math.max(0, 1 - (totalWeight * 2)), // Fast fade out
+                                            opacity: Math.max(0, 1 - (totalWeight * 2)),
                                             transition: 'opacity 0.1s'
                                         }}
                                     >
                                         {layer.label}
                                     </text>
 
-                                    {/* Skills Detail (Visible when Focused) */}
                                     <text
                                         x={dimensions.width / 2}
                                         y={layer.yCenter}
@@ -281,9 +302,9 @@ const Skills = () => {
                                         style={{
                                             pointerEvents: 'none',
                                             textShadow: '0 2px 4px rgba(0,0,0,0.8)',
-                                            fontSize: '16px',
+                                            fontSize: isMobile ? '10px' : '16px',
                                             letterSpacing: '0.05em',
-                                            opacity: Math.max(0, (weight - 0.5) * 2), // Fade in only when strong
+                                            opacity: Math.max(0, (weight - 0.5) * 2),
                                             transition: 'opacity 0.1s'
                                         }}
                                     >

@@ -29,7 +29,7 @@ const Projects = () => {
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top top",
-                    end: isDesktop ? "+=400%" : "+=200%",
+                    end: "+=200%", // Fixed to 2 screen heights as requested
                     scrub: 0.5,
                     pin: true,
                     anticipatePin: 1
@@ -54,7 +54,7 @@ const Projects = () => {
                 height: isDesktop ? '35vw' : '35dvh',
                 borderRadius: isDesktop ? '50px' : '30px',
                 left: isDesktop ? '25%' : '50%',
-                top: isDesktop ? '50%' : '30%', // Move up on mobile
+                top: isDesktop ? '50%' : '30%',
                 ease: "power2.inOut",
                 duration: 2
             }, "phase1")
@@ -85,7 +85,7 @@ const Projects = () => {
             // 2. Content Animation
             if (isMobile) {
                 gsap.set(contentRightRef.current, {
-                    top: '55%', // Moved up from 63% to ensure button visibility
+                    top: '55%',
                     bottom: 'auto',
                     left: '50%',
                     right: 'auto',
@@ -164,7 +164,7 @@ const Projects = () => {
                 <h1 style={{
                     fontFamily: "'Montserrat', sans-serif",
                     fontWeight: '900',
-                    fontSize: 'clamp(3rem, 15vw, 15rem)', // Large Impact Text
+                    fontSize: 'clamp(3rem, 15vw, 15rem)',
                     color: 'white',
                     letterSpacing: '0.05em',
                     margin: 0,
@@ -237,7 +237,7 @@ const Projects = () => {
                 <h2 style={{
                     fontFamily: "'Montserrat', sans-serif",
                     fontWeight: '900',
-                    fontSize: 'clamp(1.2rem, 4vw, 3.5rem)', // Optimized for mobile
+                    fontSize: 'clamp(1.2rem, 4vw, 3.5rem)',
                     marginBottom: '5px',
                     textTransform: 'uppercase',
                     lineHeight: '1.2',

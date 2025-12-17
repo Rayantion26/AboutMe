@@ -29,7 +29,7 @@ const ArduinoSection = () => {
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top top",
-                    end: isDesktop ? "+=800%" : "+=250%",
+                    end: "+=200%", // Fixed to 2 screen heights
                     scrub: 0.5,
                     pin: true,
                     anticipatePin: 1
@@ -134,6 +134,7 @@ const ArduinoSection = () => {
 
     return (
         <section
+            id="arduino-section"
             ref={containerRef}
             style={{
                 height: '100vh',
@@ -206,6 +207,8 @@ const ArduinoSection = () => {
                     ref={imageRef}
                     src={arduinoImg}
                     alt="Arduino Engineering"
+                    fetchPriority="high"
+                    loading="eager"
                     style={{
                         width: '100%',
                         height: '100%',

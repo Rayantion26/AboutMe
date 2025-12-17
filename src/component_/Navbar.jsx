@@ -1,28 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
-const Navbar = ({ isMenuOpen, setIsMenuOpen, scrollToSection }) => {
+const Navbar = ({ isMenuOpen, setIsMenuOpen, scrollToSection, onHomeClick }) => {
     const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-    const [lastScrollY, setLastScrollY] = useState(0);
+    const lastScrollY = useRef(0);
 
     // Smart Header Logic
     useEffect(() => {
-        const handleScroll = () => {
-            const scrollY = window.scrollY;
+        let ticking = false;
 
-            if (scrollY > lastScrollY && scrollY > 50) {
-                // Scrolling Down & not at top -> Hide
-                setIsHeaderVisible(false);
-            } else {
-                // Scrolling Up or at top -> Show
-                setIsHeaderVisible(true);
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            const lastY = lastScrollY.current;
+
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    // Logic: Hide on scroll down, Show on scroll up
+                    // Buffer of 10px to prevent jitter
+                    if (currentScrollY > lastY + 10 && currentScrollY > 50) {
+                        setIsHeaderVisible(false);
+                    } else if (currentScrollY < lastY - 10 || currentScrollY < 50) {
+                        setIsHeaderVisible(true);
+                    }
+                    lastScrollY.current = currentScrollY;
+                    ticking = false;
+                });
+
+                ticking = true;
             }
-            setLastScrollY(scrollY);
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [lastScrollY]);
+    }, []);
 
     // Button Hover Effects
     const handleBtnEnter = (e) => {
@@ -77,6 +87,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, scrollToSection }) => {
             <a
                 className="logo"
                 href="/"
+                onClick={onHomeClick}
                 style={{
                     cursor: 'pointer',
                     color: 'inherit',

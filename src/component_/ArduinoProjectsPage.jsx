@@ -88,7 +88,7 @@ const removeNeonEffect = (element) => {
     });
 };
 
-const ProjectScrollSection = ({ project }) => {
+const ProjectScrollSection = ({ project, priority = false }) => {
     const containerRef = useRef(null);
     const wrapperRef = useRef(null);
     const centerTextRef = useRef(null);
@@ -120,7 +120,7 @@ const ProjectScrollSection = ({ project }) => {
     useEffect(() => {
         if (isMultiVideo && videoRef.current) {
             gsap.to(videoRef.current, { opacity: 1, duration: 0.5 });
-            videoRef.current.play();
+            videoRef.current.play().catch(e => { if (e.name !== 'AbortError') console.error(e); });
         }
     }, [activeVideoIndex, isMultiVideo]);
 
@@ -129,7 +129,7 @@ const ProjectScrollSection = ({ project }) => {
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
-                        videoRef.current?.play();
+                        videoRef.current?.play().catch(e => { if (e.name !== 'AbortError') console.error(e); });
                     } else {
                         videoRef.current?.pause();
                     }
@@ -220,6 +220,7 @@ const ProjectScrollSection = ({ project }) => {
                 left: '50%',
                 xPercent: -50,
                 yPercent: -50,
+                willChange: 'width, height, top, left, borderRadius, transform' // Optimize layout thrashing
             });
 
             // --- ANIMATION PHASES ---
@@ -393,7 +394,7 @@ const ProjectScrollSection = ({ project }) => {
                             muted
                             playsInline
                             preload="auto" // Fix startup lag/stutter
-                            onCanPlay={() => videoRef.current?.play()}
+                            onCanPlay={() => videoRef.current?.play().catch(e => { if (e.name !== 'AbortError') console.error(e); })}
                             onLoadedMetadata={(e) => {
                                 // If it's a no-image project (Traffic Light), skip black frame
                                 if (!project.image) e.target.currentTime = 0.5;
@@ -450,6 +451,8 @@ const ProjectScrollSection = ({ project }) => {
                                     objectFit: 'cover',
                                     zIndex: 2
                                 }}
+                                fetchPriority={priority ? "high" : "auto"}
+                                loading={priority ? "eager" : "lazy"}
                             />
                         )}
                     </>
@@ -458,6 +461,8 @@ const ProjectScrollSection = ({ project }) => {
                         ref={projectImgRef}
                         src={project.image}
                         alt={project.title}
+                        fetchPriority={priority ? "high" : "auto"}
+                        loading={priority ? "eager" : "lazy"}
                         style={{
                             position: 'absolute',
                             top: 0,
@@ -717,7 +722,7 @@ const ArduinoProjectsPage = () => {
             opacity: 0,
             duration: 0.5,
             onComplete: () => {
-                navigate('/', { state: { targetSection: 'arduino' } });
+                navigate('/', { state: { targetSection: 'arduino-section' } });
             }
         });
     };
@@ -747,6 +752,12 @@ const ArduinoProjectsPage = () => {
         <>
             {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
             <div ref={pageRef} className="arduino-page-wrapper" style={{ backgroundColor: '#000', color: 'white', position: 'relative', opacity: 0 }}>
+                <style>{`
+                    .floating-nav-btn {
+                        padding: 10px 20px !important;
+                        font-size: 0.9rem !important;
+                    }
+                `}</style>
 
                 {/* Sticky Nav Container - Moved to CSS classes */}
                 <div className="floating-nav-container">
@@ -769,8 +780,8 @@ const ArduinoProjectsPage = () => {
                     </button>
                 </div>
 
-                {projectsList.map(project => (
-                    <ProjectScrollSection key={project.id} project={project} />
+                {projectsList.map((project, index) => (
+                    <ProjectScrollSection key={project.id} project={project} priority={index < 2} />
                 ))}
 
                 <section id="gallery" style={{ padding: '150px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import coffeeVideo1 from '../assets/CoffeeVideo1.mp4';
-import coffeeVideo2 from '../assets/CoffeeVideo2.mp4';
+
 import coffeePhoto1 from '../assets/CoffeePhoto (1).jpg';
 import coffeePhoto2 from '../assets/CoffeePhoto (2).jpg';
 import coffeePhoto3 from '../assets/CoffeePhoto (3).jpg';
@@ -13,7 +13,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const mediaList = [
     { type: 'video', src: coffeeVideo1 },
-    { type: 'video', src: coffeeVideo2 },
+
     { type: 'image', src: coffeePhoto1 },
     { type: 'image', src: coffeePhoto2 },
     { type: 'image', src: coffeePhoto3 },
@@ -62,7 +62,7 @@ const CoffeeSection = () => {
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top top",
-                    end: "+=400%",
+                    end: "+=200%", // Fixed to 2 screen heights
                     scrub: 2,
                     pin: true,
                     anticipatePin: 1
@@ -112,9 +112,9 @@ const CoffeeSection = () => {
             // 2. Content Animation
             if (!isDesktop) {
                 gsap.set(contentRightRef.current, {
-                    top: '58%',
+                    top: '70%', // Moved down from 58% to prevent overlap
                     left: '50%',
-                    width: '85%',
+                    width: '90%', // Wider for better text fit
                     xPercent: -50, yPercent: 0,
                     textAlign: 'center', padding: '0 10px'
                 });
@@ -152,7 +152,6 @@ const CoffeeSection = () => {
         setActiveIndex((prev) => (prev === 0 ? mediaList.length - 1 : prev - 1));
     };
 
-    // Transition Effect
     // Transition Effect for Squircle
     useEffect(() => {
         if (wrapperRef.current) {
@@ -190,6 +189,16 @@ const CoffeeSection = () => {
             videoRef.current.volume = volume;
         }
     }, [isMuted, volume, activeIndex]);
+
+    // Safety play effect
+    useEffect(() => {
+        if (currentMedia.type === 'video' && videoRef.current) {
+            videoRef.current.play().catch(e => {
+                // Ignore AbortErrors caused by quick navigation/pausing
+                if (e.name !== 'AbortError') console.error("Video play error:", e);
+            });
+        }
+    }, [activeIndex]);
 
     // Helper: Button Click Animation
     const animateButton = (target) => {

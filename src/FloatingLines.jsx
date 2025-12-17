@@ -193,6 +193,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     }
   }
 
+  // Fade Logic
+  float normalizedY = fragCoord.y / iResolution.y;
+  float fadeHeight = 0.2; // Fade over bottom 20%
+  float fadeFactor = smoothstep(0.0, fadeHeight, normalizedY);
+  col *= fadeFactor;
+
   fragColor = vec4(col, 1.0);
 }
 
@@ -255,10 +261,26 @@ export default function FloatingLines({
   const targetParallaxRef = useRef(new Vector2(0, 0));
   const currentParallaxRef = useRef(new Vector2(0, 0));
   const isPausedRef = useRef(paused);
+  const isVisibleRef = useRef(true); // Default enabled
 
   useEffect(() => {
     isPausedRef.current = paused;
   }, [paused]);
+
+  // NEW: Intersection Observer to auto-pause when off-screen
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisibleRef.current = entry.isIntersecting;
+    });
+
+    const el = containerRef.current;
+    if (el) observer.observe(el);
+
+    return () => {
+      if (el) observer.unobserve(el);
+      observer.disconnect();
+    };
+  }, []);
 
   const getLineCount = waveType => {
     if (typeof lineCount === 'number') return lineCount;
@@ -419,7 +441,8 @@ export default function FloatingLines({
 
     let raf = 0;
     const renderLoop = () => {
-      if (!isPausedRef.current) {
+      // Logic: Only render if NOT paused AND visible
+      if (!isPausedRef.current && isVisibleRef.current) {
         uniforms.iTime.value = clock.getElapsedTime();
 
         if (interactive) {

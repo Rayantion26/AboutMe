@@ -7,40 +7,128 @@ const LoadingScreen = ({ onComplete }) => {
     const textRef = useRef(null);
 
     useEffect(() => {
-        const tl = gsap.timeline({
+        const tl = gsap.timeline();
+        let isWindowLoaded = document.readyState === "complete";
+        let areAssetsLoaded = false;
+        let animationFinished = false;
+        let isMounted = true;
+
+        if (!barRef.current || !textRef.current || !containerRef.current) return;
+
+        // 1. Initial Animation: Go to 90% and wait
+        tl.to(barRef.current, {
+            width: '90%',
+            duration: 1.5, // Minimum reasonable load time
+            ease: "power2.inOut",
             onComplete: () => {
-                // Fade out container then call onComplete
-                gsap.to(containerRef.current, {
-                    opacity: 0,
-                    duration: 0.8,
-                    ease: "power2.inOut",
-                    onComplete: onComplete
-                });
+                if (!isMounted) return;
+                animationFinished = true;
+                attemptFinish();
             }
         });
 
-        // Animate Progress Bar
-        tl.to(barRef.current, {
-            width: '100%',
-            duration: 2.5, // Initial fake load time
-            ease: "power1.inOut"
-        });
-
-        // Text Fade In/Out
-        tl.to(textRef.current, {
+        // Text Fade In
+        gsap.to(textRef.current, {
             opacity: 1,
             duration: 0.5
-        }, 0);
+        });
 
-        // Optional: Check if window is loaded to speed up or wait
-        const handleLoad = () => {
-            // If window loads faster than animation, we can potentially speed it up
-            // But for smoothness, we often let the minimum animation play out
-            // tl.timeScale(2); // Speed up remaining animation
+        // Function to finish the animation
+        const finishAnimation = () => {
+            if (!barRef.current || !textRef.current || !containerRef.current) return;
+            gsap.killTweensOf(barRef.current);
+
+            const finalTl = gsap.timeline({
+                onComplete: () => {
+                    if (!isMounted) return;
+                    // Fade out container
+                    if (containerRef.current) {
+                        gsap.to(containerRef.current, {
+                            opacity: 0,
+                            duration: 0.8,
+                            ease: "power2.inOut",
+                            onComplete: onComplete
+                        });
+                    }
+                }
+            });
+
+            // Quickly finish the bar
+            finalTl.to(barRef.current, {
+                width: '100%',
+                duration: 0.3,
+                ease: "power2.out"
+            });
+
+            // Fade out text
+            finalTl.to(textRef.current, {
+                opacity: 0,
+                duration: 0.3
+            }, "<");
         };
 
-        window.addEventListener('load', handleLoad);
-        return () => window.removeEventListener('load', handleLoad);
+        const attemptFinish = () => {
+            if (!isMounted) return;
+            if (isWindowLoaded && areAssetsLoaded && animationFinished) {
+                finishAnimation();
+            } else if (isWindowLoaded && areAssetsLoaded) {
+                // Assets done, just speed up the bar
+                tl.timeScale(3);
+            }
+        };
+
+        const checkWindowLoad = () => {
+            isWindowLoaded = true;
+            attemptFinish();
+        };
+
+        // --- ASSET WAITING LOGIC ---
+        const waitForAssets = async () => {
+            // Select all media currently in the DOM
+            const images = Array.from(document.images);
+            const videos = Array.from(document.querySelectorAll('video'));
+
+            const promises = [
+                ...images.map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(resolve => {
+                        img.onload = resolve;
+                        img.onerror = resolve; // Don't block on error
+                    });
+                }),
+                ...videos.map(vid => {
+                    if (vid.readyState >= 3) return Promise.resolve(); // HAVE_FUTURE_DATA
+                    return new Promise(resolve => {
+                        vid.oncanplay = resolve;
+                        vid.onerror = resolve;
+                    });
+                })
+            ];
+
+            // Wait for all, with a max timeout fallback (e.g. 7s) to prevent hanging
+            const timeout = new Promise(resolve => setTimeout(resolve, 7000));
+            await Promise.race([Promise.all(promises), timeout]);
+
+            if (isMounted) {
+                areAssetsLoaded = true;
+                attemptFinish();
+            }
+        };
+
+
+        // Initialize Listeners
+        if (!isWindowLoaded) {
+            window.addEventListener('load', checkWindowLoad);
+        }
+
+        // Start waiting for assets immediately (React has already rendered the DOM elements by effect time)
+        waitForAssets();
+
+        return () => {
+            isMounted = false;
+            window.removeEventListener('load', checkWindowLoad);
+            tl.kill();
+        };
 
     }, [onComplete]);
 

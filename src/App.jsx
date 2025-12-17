@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import FloatingLines from './FloatingLines';
 import Navbar from './component_/Navbar'; // Imported Navbar
@@ -10,11 +11,14 @@ import CoffeeSection from './component_/CoffeeSection';
 import ArduinoSection from './component_/ArduinoSection';
 import Projects from './component_/Projects';
 import Skills from './component_/Skills';
+import ResumeSection from './component_/ResumeSection'; // Import
 import Socials from './component_/Socials';
 import ArduinoProjectsPage from './component_/ArduinoProjectsPage';
 import CustomCursor from './component_/CustomCursor';
 import LoadingScreen from './component_/LoadingScreen';
 import './App.css';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const SectionTitlePage = ({ title }) => {
   const textRef = useRef(null);
@@ -91,12 +95,8 @@ const SectionTitlePage = ({ title }) => {
 
 const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [areLinesVisible, setAreLinesVisible] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // Cleaned Up: No more excessive state causing re-renders!
-  // const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  // const [lastScrollY, setLastScrollY] = useState(0);
+  const [isLeaving, setIsLeaving] = useState(false); // New state for fade-out
 
   const floatingLinesContainerRef = useRef(null);
   const lenisRef = useRef(null);
@@ -105,28 +105,54 @@ const Home = () => {
 
   // Initialize Lenis for smooth scrolling
   useEffect(() => {
-
     // Reset scroll to top on mount
     window.scrollTo(0, 0);
 
     const lenis = new Lenis({
-      duration: 0.8, // Heavy friction
+      duration: 1.0, // Snappier
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
       gestureDirection: 'vertical',
       smooth: true,
-      mouseMultiplier: 0.1, // Reduced speed
-      smoothTouch: false,
-      touchMultiplier: 0.3, // Reduced speed
+      mouseMultiplier: 0.8, // More responsive
+      smoothTouch: false, // Default touch handling preventing weird overrides
+      touchMultiplier: 0.8, // More responsive
       infinite: false,
     });
     lenisRef.current = lenis;
 
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
+    // Connect Lenis to GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
+
+    // Use GSAP ticker for Lenis for perfect sync
+    const updateLenis = (time) => {
+      lenis.raf(time * 1000);
+    };
+
+    gsap.ticker.add(updateLenis);
+    gsap.ticker.lagSmoothing(0); // Disable lag smoothing for instant response
+
+    // --- Floating Lines Fade via GSAP (Optimized) ---
+    // Fade out ONLY when entering Projects section, keeping it visible for "About"
+    if (floatingLinesContainerRef.current) {
+      gsap.to(floatingLinesContainerRef.current, {
+        opacity: 0,
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#projects",
+          start: "top bottom", // Start fading when projects section enters viewport
+          end: "center center",   // Finish fading when projects is centered (smoother)
+          scrub: true,
+          onLeave: () => {
+            // Disable rendering completely when off-screen
+            if (floatingLinesContainerRef.current) floatingLinesContainerRef.current.style.display = 'none';
+          },
+          onEnterBack: () => {
+            if (floatingLinesContainerRef.current) floatingLinesContainerRef.current.style.display = 'block';
+          }
+        }
+      });
     }
-    requestAnimationFrame(raf);
 
     if (location.state?.targetSection) {
       setTimeout(() => {
@@ -140,6 +166,8 @@ const Home = () => {
 
     return () => {
       lenis.destroy();
+      gsap.ticker.remove(updateLenis);
+      ScrollTrigger.getAll().forEach(t => t.kill()); // Cleanup triggers
     };
   }, [location]);
 
@@ -151,40 +179,37 @@ const Home = () => {
     }
   };
 
-  // Scroll opacity logic ONLY (Performant DOM updates, no state spam)
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const windowHeight = window.innerHeight;
+  const handleHomeClick = (e) => {
+    e.preventDefault();
+    if (isLeaving) return;
 
-      // Floating lines opacity
-      const fadeStart = 0;
-      const fadeEnd = windowHeight * 0.8;
-      let newOpacity = 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart);
-      newOpacity = Math.max(0, Math.min(1, newOpacity));
+    setIsLeaving(true);
+    setIsMenuOpen(false);
 
-      if (floatingLinesContainerRef.current) {
-        floatingLinesContainerRef.current.style.opacity = newOpacity;
-        floatingLinesContainerRef.current.style.pointerEvents = newOpacity > 0 ? 'auto' : 'none';
-      }
-
-      // Only check state if it actually changes to prevent re-renders
-      if (newOpacity <= 0 && areLinesVisible) {
-        setAreLinesVisible(false);
-      } else if (newOpacity > 0 && !areLinesVisible) {
-        setAreLinesVisible(true);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [areLinesVisible]);
-
+    // Wait for fade out then reload
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 800); // 0.8s matches transition
+  };
 
   return (
     <>
       {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
+
+      {/* Exit Overlay */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: '#000',
+        zIndex: 999999, // Extremely high
+        opacity: isLeaving ? 1 : 0,
+        pointerEvents: isLeaving ? 'all' : 'none',
+        transition: 'opacity 0.8s ease-in-out'
+      }}></div>
+
       <div className="content-wrapper">
 
         {/* Isolated Navbar Component */}
@@ -192,6 +217,7 @@ const Home = () => {
           isMenuOpen={isMenuOpen}
           setIsMenuOpen={setIsMenuOpen}
           scrollToSection={scrollToSection}
+          onHomeClick={handleHomeClick}
         />
 
         {/* Mobile Side Drawer + Backdrop */}
@@ -206,13 +232,14 @@ const Home = () => {
             {/* Mobile Home Link */}
             <a
               href="/"
+              onClick={handleHomeClick}
               className="mobile-nav-link"
               style={{ textDecoration: 'none', color: '#fff' }}
             >
               Home
             </a>
 
-            {['about', 'projects', 'audiophile', 'skills', 'socials'].map((section) => (
+            {['about', 'projects', 'audiophile', 'skills', 'resume', 'socials'].map((section) => (
               <button
                 key={section}
                 onClick={() => scrollToSection(section)}
@@ -244,7 +271,7 @@ const Home = () => {
           bendStrength={-1}
           interactive={true}
           parallax={true}
-          paused={!areLinesVisible}
+        // Paused prop removed, internal handling handles visibility now
         />
       </div>
 
@@ -268,6 +295,11 @@ const Home = () => {
       <div id="skills">
         <Skills />
       </div>
+
+      <div id="resume">
+        <ResumeSection />
+      </div>
+
       <div id="socials">
         <Socials />
       </div>

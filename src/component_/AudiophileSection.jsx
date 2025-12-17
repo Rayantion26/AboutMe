@@ -27,7 +27,7 @@ const AudiophileSection = () => {
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top top",
-                    end: "+=400%",
+                    end: "+=200%", // Fixed to 2 screen heights
                     scrub: 2,
                     pin: true,
                     anticipatePin: 1

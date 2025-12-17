@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import aboutMeImg from '../assets/AboutMe.jpg'; // Import image
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -136,8 +137,8 @@ const About = () => {
                 {/* Image Side */}
                 <div ref={imageRef} className="about-image-wrapper">
                     <img
-                        src="https://placehold.co/500x600/222/fff?text=My+Face"
-                        alt="Profile"
+                        src={aboutMeImg}
+                        alt="Aaron Preston"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                 </div>
