@@ -78,7 +78,7 @@ const ArduinoSection = () => {
             // 2. Content Animation
             if (isMobile) {
                 gsap.set(contentRightRef.current, {
-                    top: '55%', // Text starts below the image (30% center + half height ~17.5% = ~47.5%. 55% clears it)
+                    top: '55%',
                     bottom: 'auto',
                     left: '50%',
                     right: 'auto',
@@ -175,7 +175,7 @@ const ArduinoSection = () => {
                 style={{
                     position: 'absolute',
                     top: '50%',
-                    left: '25%', // Default desktop pos, overridden by GSAP
+                    left: '25%',
                     transform: 'translate(-50%, -50%)',
                     width: '37vw',
                     height: '37vw',
@@ -232,8 +232,8 @@ const ArduinoSection = () => {
                 <h2 style={{
                     fontFamily: "'Montserrat', sans-serif",
                     fontWeight: '900',
-                    fontSize: 'clamp(1.5rem, 5vw, 4rem)',
-                    marginBottom: '20px',
+                    fontSize: 'clamp(1.2rem, 5vw, 4rem)',
+                    marginBottom: '5px',
                     textTransform: 'uppercase',
                     lineHeight: '1.1',
                     color: '#00979C',
@@ -241,14 +241,14 @@ const ArduinoSection = () => {
                 }}>
                     Smart Systems & IoT
                 </h2>
-                <div style={{ width: '60px', height: '4px', backgroundColor: '#00979C', marginBottom: '30px', display: 'inline-block' }}></div>
+                <div style={{ width: '60px', height: '4px', backgroundColor: '#00979C', marginBottom: '15px', display: 'inline-block' }}></div>
                 <p style={{
                     fontFamily: "'Roboto', sans-serif",
-                    fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-                    lineHeight: '1.7',
+                    fontSize: 'clamp(0.85rem, 2vw, 1.2rem)',
+                    lineHeight: '1.5',
                     fontWeight: '300',
                     color: '#ccc',
-                    marginBottom: '40px'
+                    marginBottom: '20px'
                 }}>
                     Specializing in embedded systems and automated solutions. From autonomous line-following robots to RFID parking complexes,
                     I build the bridge between code and the physical world.

@@ -237,8 +237,8 @@ const Projects = () => {
                 <h2 style={{
                     fontFamily: "'Montserrat', sans-serif",
                     fontWeight: '900',
-                    fontSize: 'clamp(1.5rem, 5vw, 3.5rem)', // Optimized for mobile
-                    marginBottom: '10px',
+                    fontSize: 'clamp(1.2rem, 4vw, 3.5rem)', // Optimized for mobile
+                    marginBottom: '5px',
                     textTransform: 'uppercase',
                     lineHeight: '1.2',
                     color: '#ff6b6b', // N8N Color
@@ -246,23 +246,23 @@ const Projects = () => {
                 }}>
                     TongBian Receipt Reader Line Bot (R.R. Line Bot)
                 </h2>
-                <div style={{ width: '60px', height: '4px', backgroundColor: '#ff6b6b', marginBottom: '30px', display: 'inline-block' }}></div>
+                <div style={{ width: '60px', height: '4px', backgroundColor: '#ff6b6b', marginBottom: '15px', display: 'inline-block' }}></div>
                 <p style={{
                     fontFamily: "'Roboto', sans-serif",
-                    fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-                    lineHeight: '1.7',
+                    fontSize: 'clamp(0.85rem, 2vw, 1.2rem)',
+                    lineHeight: '1.5',
                     fontWeight: '300',
                     color: '#ccc',
-                    marginBottom: '40px'
+                    marginBottom: '20px'
                 }}>
                     An intelligent automation bot built with n8n that processes receipts and integrates directly with LINE messenger.
                     It uses OCR to extract data and automatically categorizes expenses, streamlining personal finance management.
                 </p>
 
                 <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-                    <span style={{ padding: '8px 20px', backgroundColor: '#222', borderRadius: '20px', fontSize: '0.9rem', color: '#fff' }}>n8n</span>
-                    <span style={{ padding: '8px 20px', backgroundColor: '#222', borderRadius: '20px', fontSize: '0.9rem', color: '#fff' }}>LINE API</span>
-                    <span style={{ padding: '8px 20px', backgroundColor: '#222', borderRadius: '20px', fontSize: '0.9rem', color: '#fff' }}>OCR</span>
+                    <span style={{ padding: '6px 15px', backgroundColor: '#222', borderRadius: '15px', fontSize: '0.75rem', color: '#fff' }}>n8n</span>
+                    <span style={{ padding: '6px 15px', backgroundColor: '#222', borderRadius: '15px', fontSize: '0.75rem', color: '#fff' }}>LINE API</span>
+                    <span style={{ padding: '6px 15px', backgroundColor: '#222', borderRadius: '15px', fontSize: '0.75rem', color: '#fff' }}>OCR</span>
                 </div>
                 <button
                     onClick={() => setShowQR(true)}
@@ -391,14 +391,13 @@ const Projects = () => {
                             </button>
                         </div>
                     </div>
-                    <style>{`
-                        @keyframes fadeIn {
-                            to { opacity: 1; }
-                        }
-                    `}</style>
                 </div>
             )}
-
+            <style>{`
+                @keyframes fadeIn {
+                    to { opacity: 1; }
+                }
+            `}</style>
         </section>
     );
 };

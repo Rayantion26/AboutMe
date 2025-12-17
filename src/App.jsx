@@ -105,9 +105,9 @@ const Home = () => {
       direction: 'vertical',
       gestureDirection: 'vertical',
       smooth: true,
-      mouseMultiplier: 0.15, // Very controlled
+      mouseMultiplier: 0.19, // Increased speed 0.25x
       smoothTouch: false,
-      touchMultiplier: 0.4, // 1/2 speed swipes for maximum control
+      touchMultiplier: 0.5, // Increased speed 0.25x
       infinite: false,
     });
     lenisRef.current = lenis;

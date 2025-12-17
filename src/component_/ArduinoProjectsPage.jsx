@@ -101,6 +101,10 @@ const ProjectScrollSection = ({ project }) => {
     const videoSrc = project.video || (project.videos && project.videos[activeVideoIndex]);
     const isMultiVideo = project.videos && project.videos.length > 1;
 
+    // Touch Refs
+    const touchStart = useRef(null);
+    const touchEnd = useRef(null);
+
     const switchVideo = (nextIndex) => {
         // Fade Out
         gsap.to(videoRef.current, {
@@ -116,8 +120,6 @@ const ProjectScrollSection = ({ project }) => {
     useEffect(() => {
         if (isMultiVideo && videoRef.current) {
             gsap.to(videoRef.current, { opacity: 1, duration: 0.5 });
-            // Only play if currently visible? Ideally yes, but click implies interaction.
-            // For safety, we can check logic or just let the visibility trigger handle pause if we scroll away.
             videoRef.current.play();
         }
     }, [activeVideoIndex, isMultiVideo]);
@@ -159,6 +161,32 @@ const ProjectScrollSection = ({ project }) => {
         if (isMultiVideo) {
             const nextIndex = (activeVideoIndex + 1) % project.videos.length;
             switchVideo(nextIndex);
+        }
+    };
+
+    // Swipe Logic
+    const onTouchStart = (e) => {
+        touchEnd.current = null;
+        touchStart.current = e.targetTouches[0].clientX;
+    };
+
+    const onTouchMove = (e) => {
+        touchEnd.current = e.targetTouches[0].clientX;
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart.current || !touchEnd.current || !isMultiVideo) return;
+        const distance = touchStart.current - touchEnd.current;
+        const minSwipeDistance = 50;
+
+        if (distance > minSwipeDistance) {
+            // Swipe Left -> Next
+            const nextIndex = (activeVideoIndex + 1) % project.videos.length;
+            switchVideo(nextIndex);
+        } else if (distance < -minSwipeDistance) {
+            // Swipe Right -> Prev
+            const prevIndex = (activeVideoIndex - 1 + project.videos.length) % project.videos.length;
+            switchVideo(prevIndex);
         }
     };
 
@@ -343,6 +371,9 @@ const ProjectScrollSection = ({ project }) => {
 
             <div
                 ref={wrapperRef}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
                 style={{
                     position: 'absolute',
                     zIndex: 2,
@@ -654,14 +685,14 @@ const ArduinoProjectsPage = () => {
         window.scrollTo(0, 0);
 
         const lenis = new Lenis({
-            duration: 0.6, // Heavy friction
+            duration: 0.8, // Heavy friction
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             direction: 'vertical',
             gestureDirection: 'vertical',
             smooth: true,
-            mouseMultiplier: 0.3, // Heavy mouse feel
+            mouseMultiplier: 0.15, // Heavy mouse feel
             smoothTouch: false,
-            touchMultiplier: 0.5, // Heavy swipe (geared down)
+            touchMultiplier: 0.4, // Heavy swipe (geared down)
         });
         lenisRef.current = lenis;
 

@@ -44,6 +44,10 @@ const CoffeeSection = () => {
     const currentMedia = mediaList[activeIndex];
     const imageRef = useRef(null);
 
+    // Touch Refs
+    const touchStart = useRef(null);
+    const touchEnd = useRef(null);
+
     // --- GSAP ANIMATION ---
     useEffect(() => {
         let mm = gsap.matchMedia();
@@ -236,6 +240,23 @@ const CoffeeSection = () => {
                 onMouseEnter={() => setHoveringSquircle(true)}
                 onMouseLeave={() => setHoveringSquircle(false)}
                 onClick={() => setIsLightboxOpen(true)}
+                onTouchStart={(e) => {
+                    touchEnd.current = null;
+                    touchStart.current = e.targetTouches[0].clientX;
+                }}
+                onTouchMove={(e) => {
+                    touchEnd.current = e.targetTouches[0].clientX;
+                }}
+                onTouchEnd={() => {
+                    if (!touchStart.current || !touchEnd.current) return;
+                    const distance = touchStart.current - touchEnd.current;
+                    const minSwipeDistance = 50;
+                    if (distance > minSwipeDistance) {
+                        nextMedia(); // Swipe Left -> Next
+                    } else if (distance < -minSwipeDistance) {
+                        prevMedia(); // Swipe Right -> Prev
+                    }
+                }}
                 style={{
                     position: 'absolute', zIndex: 2, overflow: 'hidden',
                     boxShadow: '0 30px 60px rgba(0,0,0,0.5)',
