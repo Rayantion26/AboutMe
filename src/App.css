@@ -22,6 +22,8 @@ body::-webkit-scrollbar,
 html,
 body,
 * {
+  box-sizing: border-box;
+  /* Global Reset */
   scrollbar-width: none;
   /* Firefox */
   -ms-overflow-style: none;
@@ -179,7 +181,7 @@ h4 {
 /* --- RESTORED STYLES END --- */
 
 /* Ensure all content sections are above FloatingLines */
-#about,
+/* Ensure all content sections are above FloatingLines */
 #projects,
 #audiophile,
 #skills,
@@ -189,6 +191,13 @@ h4 {
   z-index: 5;
   background-color: #000;
   /* Ensure opaque background if needed */
+}
+
+#about {
+  position: relative;
+  z-index: 5;
+  background-color: transparent;
+  /* Transparent for FloatingLines visibility */
 }
 
 /* Global / Desktop Defaults */

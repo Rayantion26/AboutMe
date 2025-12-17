@@ -73,7 +73,7 @@ const SectionTitlePage = ({ title }) => {
         style={{
           fontFamily: "'Montserrat', sans-serif",
           fontWeight: '900',
-          fontSize: 'clamp(3rem, 15vw, 15rem)',
+          fontSize: 'clamp(2rem, 12vw, 15rem)', // Reduced from 3rem/15vw to fit mobile
           margin: 0,
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
@@ -103,7 +103,8 @@ const Home = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false); // New state for fade-out
 
-  const [linesPaused, setLinesPaused] = useState(false);
+  const [lenis, setLenis] = useState(null); // Lifted to state for Navbar
+  const [linesPaused, setLinesPaused] = useState(false); // Restored state
   const floatingLinesContainerRef = useRef(null);
   const lenisRef = useRef(null);
   const navigate = useNavigate();
@@ -114,7 +115,7 @@ const Home = () => {
     // Reset scroll to top on mount
     window.scrollTo(0, 0);
 
-    const lenis = new Lenis({
+    const lenisInstance = new Lenis({
       duration: 1.0, // Snappier
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
@@ -125,15 +126,16 @@ const Home = () => {
       touchMultiplier: 0.8, // More responsive
       infinite: false,
     });
-    lenisRef.current = lenis;
-    window.lenis = lenis; // Expose for global control (e.g. Lightbox)
+    lenisRef.current = lenisInstance;
+    window.lenis = lenisInstance; // Expose for global control (e.g. Lightbox)
+    setLenis(lenisInstance); // Trigger re-render for children
 
     // Connect Lenis to GSAP ScrollTrigger
-    lenis.on('scroll', ScrollTrigger.update);
+    lenisInstance.on('scroll', ScrollTrigger.update);
 
     // Use GSAP ticker for Lenis for perfect sync
     const updateLenis = (time) => {
-      lenis.raf(time * 1000);
+      lenisInstance.raf(time * 1000);
     };
 
     gsap.ticker.add(updateLenis);
@@ -167,14 +169,14 @@ const Home = () => {
       setTimeout(() => {
         const element = document.getElementById(location.state.targetSection);
         if (element) {
-          lenis.scrollTo(element, { immediate: true });
+          lenisInstance.scrollTo(element, { immediate: true });
           window.history.replaceState({}, document.title);
         }
       }, 100);
     }
 
     return () => {
-      lenis.destroy();
+      lenisInstance.destroy();
       gsap.ticker.remove(updateLenis);
       ScrollTrigger.getAll().forEach(t => t.kill()); // Cleanup triggers
     };
@@ -219,46 +221,45 @@ const Home = () => {
         transition: 'opacity 0.8s ease-in-out'
       }}></div>
 
-      <div className="content-wrapper">
+      {/* Isolated Navbar Component - Moved outside content-wrapper for correct layering */}
+      <Navbar
+        lenis={lenis} // PASS LENIS PROP
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+        scrollToSection={scrollToSection}
+        onHomeClick={handleHomeClick}
+      />
 
-        {/* Isolated Navbar Component */}
-        <Navbar
-          isMenuOpen={isMenuOpen}
-          setIsMenuOpen={setIsMenuOpen}
-          scrollToSection={scrollToSection}
-          onHomeClick={handleHomeClick}
-        />
+      {/* Mobile Side Drawer + Backdrop - Moved outside content-wrapper */}
+      <div
+        className={`mobile-menu-backdrop ${isMenuOpen ? 'open' : ''}`}
+        onClick={() => setIsMenuOpen(false)}
+      ></div>
 
-        {/* Mobile Side Drawer + Backdrop */}
-        <div
-          className={`mobile-menu-backdrop ${isMenuOpen ? 'open' : ''}`}
-          onClick={() => setIsMenuOpen(false)}
-        ></div>
+      <div className={`mobile-menu-sidebar ${isMenuOpen ? 'open' : ''}`}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '30px', textAlign: 'left', paddingLeft: '40px' }}>
+          <a
+            href="/"
+            onClick={handleHomeClick}
+            className="mobile-nav-link"
+            style={{ textDecoration: 'none', color: '#fff' }}
+          >
+            Home
+          </a>
 
-        {/* The Sidebar itself */}
-        <div className={`mobile-menu-sidebar ${isMenuOpen ? 'open' : ''}`}>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '30px', textAlign: 'left', paddingLeft: '40px' }}>
-            {/* Mobile Home Link */}
-            <a
-              href="/"
-              onClick={handleHomeClick}
+          {['about', 'projects', 'audiophile', 'skills', 'resume', 'socials'].map((section) => (
+            <button
+              key={section}
+              onClick={() => scrollToSection(section)}
               className="mobile-nav-link"
-              style={{ textDecoration: 'none', color: '#fff' }}
             >
-              Home
-            </a>
+              {section === 'audiophile' ? 'Interests' : section.charAt(0).toUpperCase() + section.slice(1)}
+            </button>
+          ))}
+        </nav>
+      </div>
 
-            {['about', 'projects', 'audiophile', 'skills', 'resume', 'socials'].map((section) => (
-              <button
-                key={section}
-                onClick={() => scrollToSection(section)}
-                className="mobile-nav-link"
-              >
-                {section === 'audiophile' ? 'Interests' : section.charAt(0).toUpperCase() + section.slice(1)}
-              </button>
-            ))}
-          </nav>
-        </div>
+      <div className="content-wrapper">
 
         <main className="center-content">
           <h1>Aaron Preston</h1>
@@ -270,7 +271,7 @@ const Home = () => {
 
       <div
         ref={floatingLinesContainerRef}
-        style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 0, backgroundColor: '#000' }}
+        style={{ width: '100%', height: '100%', position: 'fixed', top: 0, left: 0, zIndex: 0, backgroundColor: '#000' }}
       >
         <FloatingLines
           enabledWaves={FL_ENABLED_WAVES}

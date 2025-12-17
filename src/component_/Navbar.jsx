@@ -1,38 +1,50 @@
 import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
-const Navbar = ({ isMenuOpen, setIsMenuOpen, scrollToSection, onHomeClick }) => {
+const Navbar = ({ lenis, isMenuOpen, setIsMenuOpen, scrollToSection, onHomeClick }) => {
     const [isHeaderVisible, setIsHeaderVisible] = useState(true);
     const lastScrollY = useRef(0);
 
     // Smart Header Logic
     useEffect(() => {
-        let ticking = false;
-
-        const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            const lastY = lastScrollY.current;
-
-            if (!ticking) {
-                window.requestAnimationFrame(() => {
-                    // Logic: Hide on scroll down, Show on scroll up
-                    // Buffer of 10px to prevent jitter
-                    if (currentScrollY > lastY + 10 && currentScrollY > 50) {
-                        setIsHeaderVisible(false);
-                    } else if (currentScrollY < lastY - 10 || currentScrollY < 50) {
-                        setIsHeaderVisible(true);
-                    }
-                    lastScrollY.current = currentScrollY;
-                    ticking = false;
-                });
-
-                ticking = true;
+        const handleScroll = ({ scroll, direction }) => {
+            // Logic: Hide on scroll down (1), Show on scroll up (-1)
+            // Buffer of 50px at top
+            if (direction === 1 && scroll > 50) {
+                setIsHeaderVisible(false);
+            } else if (direction === -1) {
+                setIsHeaderVisible(true);
+            } else if (scroll < 50) {
+                // Always show at top
+                setIsHeaderVisible(true);
             }
         };
 
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+        // Prefer Lenis if available
+        if (lenis) {
+            lenis.on('scroll', handleScroll);
+        } else if (window.lenis) {
+            window.lenis.on('scroll', handleScroll);
+        } else {
+            // Fallback (though App.jsx should ensure lenis exists)
+            const nativeScroll = () => {
+                const scroll = window.scrollY;
+                const direction = scroll > lastScrollY.current ? 1 : -1;
+                handleScroll({ scroll, direction });
+                lastScrollY.current = scroll;
+            };
+            window.addEventListener('scroll', nativeScroll);
+            return () => window.removeEventListener('scroll', nativeScroll);
+        }
+
+        return () => {
+            if (lenis) {
+                lenis.off('scroll', handleScroll);
+            } else if (window.lenis) {
+                window.lenis.off('scroll', handleScroll);
+            }
+        };
+    }, [lenis]);
 
     // Button Hover Effects
     const handleBtnEnter = (e) => {

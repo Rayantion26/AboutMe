@@ -66,7 +66,7 @@ const About = () => {
             ref={sectionRef}
             style={{
                 minHeight: '100vh',
-                backgroundColor: '#000',
+                backgroundColor: 'transparent',
                 color: 'white',
                 display: 'flex',
                 alignItems: 'center',

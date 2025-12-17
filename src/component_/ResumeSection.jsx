@@ -40,8 +40,9 @@ const ResumeSection = () => {
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                padding: '100px 20px',
-                textAlign: 'center'
+                padding: '150px 30px', // Increased vertical and horizontal padding
+                textAlign: 'center',
+                boxSizing: 'border-box' // Prevent width overflow
             }}
         >
             <h2 style={{
@@ -53,20 +54,22 @@ const ResumeSection = () => {
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em'
             }}>
-                Professional Profile
+                Professional <wbr /> Profile
             </h2>
 
             <div style={{
-                width: '90%', // Ensure it doesn't touch edges on mobile
-                maxWidth: '800px',
+                width: '100%',
+                maxWidth: '600px', // Tighter constraint for readability
                 marginBottom: '60px',
                 lineHeight: '1.8',
                 color: '#ccc',
                 fontFamily: "'Roboto', sans-serif",
                 fontSize: 'clamp(1rem, 1.5vw, 1.2rem)',
                 fontWeight: 300,
-                padding: '0 10px', // Extra safety padding
-                margin: '0 auto' // Center physically
+                padding: '0 20px', // More internal padding
+                margin: '0 auto', // strict centering
+                textAlign: 'center', // Explicit center alignment
+                boxSizing: 'border-box'
             }}>
                 <p>
                     I specialize in building scalable web applications and integrating complex hardware systems.
