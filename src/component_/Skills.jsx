@@ -1,62 +1,304 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import * as d3 from 'd3-shape';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const skills = [
-    { name: "React", level: 90 },
-    { name: "JavaScript", level: 85 },
-    { name: "CSS/GSAP", level: 80 },
-    { name: "Arduino", level: 75 },
-    { name: "n8n", level: 85 },
-    { name: "Python", level: 70 },
-    { name: "Node.js", level: 65 },
-    { name: "Git", level: 80 }
+const POINTS_COUNT = 20;
+
+const layersData = [
+    {
+        id: 'dev',
+        label: 'DEVELOPMENT',
+        color: '#00ffff', // Cyan
+        skills: 'React • HTML • CSS • JavaScript • Vite • Frontend'
+    },
+    {
+        id: 'automation',
+        label: 'AUTOMATION',
+        color: '#ff0055', // Neon Red/Pink
+        skills: 'N8N • Webhooks • Rest APIs • Integrations • workflows'
+    },
+    {
+        id: 'hardware',
+        label: 'HARDWARE',
+        color: '#ffaa00', // Orange
+        skills: 'Arduino • C++ • Electronics • IoT • Prototyping'
+    },
+    {
+        id: 'creative',
+        label: 'CREATIVE',
+        color: '#bf00ff', // Purple
+        skills: 'Photoshop • Premiere Pro • Illustrator • UI/UX • Design'
+    },
+    {
+        id: 'productivity',
+        label: 'PRODUCTIVITY',
+        color: '#00ff66', // Green
+        skills: 'Excel • Management • Strategy • Organization • Office'
+    }
 ];
 
 const Skills = () => {
     const containerRef = useRef(null);
+    const [dimensions, setDimensions] = useState({ width: 1000, height: 600 });
+    const [time, setTime] = useState(0);
+
+    // State for React rendering (Text visibility)
+    const [hoveredLayer, setHoveredLayer] = useState(null);
+
+    // Refs for Animation Logic (Mutable, doesn't trigger render itself)
+    const hoveredLayerRef = useRef(null);
+    const zoomWeights = useRef({ dev: 0, automation: 0, hardware: 0, creative: 0, productivity: 0 });
 
     useEffect(() => {
-        const bars = containerRef.current.querySelectorAll('.skill-bar-fill');
+        const handleResize = () => {
+            if (containerRef.current) {
+                setDimensions({
+                    width: containerRef.current.clientWidth,
+                    height: 600
+                });
+            }
+        };
+        handleResize(); // Initial measurement
+        window.addEventListener('resize', handleResize);
 
-        bars.forEach(bar => {
-            const width = bar.getAttribute('data-width');
-            gsap.fromTo(bar,
-                { width: '0%' },
-                {
-                    width: width + '%',
-                    duration: 1.5,
-                    ease: "power2.out",
-                    scrollTrigger: {
-                        trigger: bar,
-                        start: "top 90%",
-                    }
-                }
-            );
-        });
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    return (
-        <section id="skills" style={{ padding: '100px 20px', backgroundColor: '#000', color: 'white', minHeight: '80vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div ref={containerRef} style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-                <h2 style={{ fontSize: '3.5rem', textAlign: 'center', marginBottom: '60px', fontFamily: "'Playfair Display', serif" }}>Technical Arsenal</h2>
+    const areaGenerator = useMemo(() => d3.area()
+        .x((d, i) => (i / (POINTS_COUNT - 1)) * dimensions.width)
+        .y0(d => d[0])
+        .y1(d => d[1])
+        .curve(d3.curveBasis), [dimensions.width]);
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                    {skills.map((skill, index) => (
-                        <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                            <div style={{ width: '120px', textAlign: 'right', fontSize: '1.1rem', fontFamily: "'LXGW WenKai Mono TC', monospace" }}>{skill.name}</div>
-                            <div style={{ flex: 1, height: '10px', backgroundColor: '#222', borderRadius: '5px', overflow: 'hidden' }}>
-                                <div
-                                    className="skill-bar-fill"
-                                    data-width={skill.level}
-                                    style={{ height: '100%', backgroundColor: '#fff', borderRadius: '5px', width: '0%' }}
-                                ></div>
-                            </div>
-                            <div style={{ width: '40px', fontSize: '0.9rem', color: '#666' }}>{skill.level}%</div>
-                        </div>
-                    ))}
+    // Data Calculation
+    const currentPaths = useMemo(() => {
+        const rawData = Array.from({ length: POINTS_COUNT }, (_, i) => {
+            const point = { x: i };
+
+            // Calculate Global Focus Factor (0 to 1) based on sum of weights
+            const totalWeight = Object.values(zoomWeights.current).reduce((a, b) => a + b, 0);
+            const focusFactor = Math.min(1, totalWeight);
+
+            layersData.forEach((layer, idx) => {
+                const layerWeight = zoomWeights.current[layer.id] || 0;
+
+                // Heights
+                const idleHeight = 60; // Height when nobody is looking
+                const activeHeight = 250; // Height when THIS layer is focused
+                const suppressedHeight = 25; // Height when ANOTHER layer is focused
+
+                // Blending Logic:
+                const targetFocusHeight = suppressedHeight + (layerWeight * (activeHeight - suppressedHeight));
+                const baseHeight = idleHeight + (focusFactor * (targetFocusHeight - idleHeight));
+
+                const t = time;
+                const wave1 = Math.sin((i * 0.4) + (t * 0.1) + idx) * 30;
+                const wave2 = Math.cos((i * 0.3) - (t * 0.15)) * 25;
+
+                // Soft minimum
+                point[layer.id] = Math.max(20, baseHeight + wave1 + wave2);
+            });
+            return point;
+        });
+
+        const stack = d3.stack()
+            .keys(layersData.map(l => l.id))
+            .offset(d3.stackOffsetSilhouette);
+
+        const stackedData = stack(rawData);
+
+        return stackedData.map((layer, index) => {
+            const processedLayer = layer.map(point => [
+                point[0] + dimensions.height / 2,
+                point[1] + dimensions.height / 2
+            ]);
+
+            // Calculate center
+            const midStart = Math.floor(POINTS_COUNT * 0.4);
+            const midEnd = Math.floor(POINTS_COUNT * 0.6);
+            let ySum = 0;
+            let count = 0;
+            for (let i = midStart; i < midEnd; i++) {
+                const p = processedLayer[i];
+                ySum += (p[0] + p[1]) / 2;
+                count++;
+            }
+            const yCenter = count > 0 ? ySum / count : dimensions.height / 2;
+
+            return {
+                id: layersData[index].id,
+                d: areaGenerator(processedLayer),
+                color: layersData[index].color,
+                label: layersData[index].label,
+                skills: layersData[index].skills,
+                yCenter: yCenter
+            };
+        });
+    }, [time, dimensions, areaGenerator]);
+
+
+    useEffect(() => {
+        let animationFrame;
+        const animate = () => {
+            // 1. Update Time
+            setTime(t => t + 0.08);
+
+            // 2. Interpolate Zoom Weights using Ref (no dep loop)
+            layersData.forEach(layer => {
+                // Target is based on the Ref, not state
+                const isHovered = hoveredLayerRef.current === layer.id;
+                const target = isHovered ? 1 : 0;
+                const current = zoomWeights.current[layer.id];
+
+                // LERP (0.08 for smooth/slow transition)
+                zoomWeights.current[layer.id] = current + (target - current) * 0.08;
+            });
+
+            animationFrame = requestAnimationFrame(animate);
+        };
+        animationFrame = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrame);
+    }, []);
+
+    // Unified Handler
+    const updateInteraction = (id) => {
+        hoveredLayerRef.current = id;
+        setHoveredLayer(id);
+    };
+
+    const handleLayerClick = (id) => {
+        const newId = (hoveredLayer === id) ? null : id;
+        updateInteraction(newId);
+    };
+
+    return (
+        <section
+            id="skills"
+            style={{
+                height: '100vh',
+                backgroundColor: '#000',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column'
+            }}
+        >
+            <div style={{
+                textAlign: 'left',
+                width: '90%',
+                maxWidth: '1200px',
+                marginBottom: '20px'
+            }}>
+                <h2 style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontSize: '1.5rem',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    color: '#fff',
+                    margin: 0
+                }}>
+                    Top Skills
+                </h2>
+            </div>
+
+            <div
+                ref={containerRef}
+                style={{
+                    width: '90%',
+                    maxWidth: '1200px',
+                    height: '600px',
+                    position: 'relative',
+                    borderBottom: '1px solid #333'
+                }}
+            >
+                {dimensions.width > 0 && (
+                    <svg
+                        width={dimensions.width}
+                        height={dimensions.height}
+                        style={{ overflow: 'visible' }}
+                    >
+                        {currentPaths.map((layer) => {
+                            const weight = zoomWeights.current[layer.id];
+                            const isSelected = weight > 0.5;
+                            const totalWeight = Object.values(zoomWeights.current).reduce((a, b) => a + b, 0);
+                            const isFocusMode = totalWeight > 0.2;
+                            const isDimmed = isFocusMode && !isSelected;
+
+                            return (
+                                <g
+                                    key={layer.id}
+                                    onClick={() => handleLayerClick(layer.id)}
+                                    // Combine click/hover behavior elegantly
+                                    onMouseEnter={() => updateInteraction(layer.id)}
+                                    onMouseLeave={() => updateInteraction(null)}
+                                    style={{
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    <path
+                                        d={layer.d}
+                                        fill={layer.color}
+                                        fillOpacity={isDimmed ? 0.2 : 1}
+                                        stroke={isSelected ? "#fff" : "none"}
+                                        strokeWidth="1"
+                                        style={{ transition: 'fill-opacity 0.3s, stroke 0.3s' }}
+                                    />
+
+                                    {/* Category Label (Visible when Idle) */}
+                                    <text
+                                        x={dimensions.width / 2}
+                                        y={layer.yCenter}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fill="white"
+                                        fontFamily="'Montserrat', sans-serif"
+                                        fontWeight="800"
+                                        style={{
+                                            pointerEvents: 'none',
+                                            textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                                            fontSize: '20px',
+                                            letterSpacing: '0.05em',
+                                            opacity: Math.max(0, 1 - (totalWeight * 2)), // Fast fade out
+                                            transition: 'opacity 0.1s'
+                                        }}
+                                    >
+                                        {layer.label}
+                                    </text>
+
+                                    {/* Skills Detail (Visible when Focused) */}
+                                    <text
+                                        x={dimensions.width / 2}
+                                        y={layer.yCenter}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fill="white"
+                                        fontFamily="'Montserrat', sans-serif"
+                                        fontWeight="800"
+                                        style={{
+                                            pointerEvents: 'none',
+                                            textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                                            fontSize: '16px',
+                                            letterSpacing: '0.05em',
+                                            opacity: Math.max(0, (weight - 0.5) * 2), // Fade in only when strong
+                                            transition: 'opacity 0.1s'
+                                        }}
+                                    >
+                                        {layer.skills}
+                                    </text>
+                                </g>
+                            );
+                        })}
+                    </svg>
+                )}
+
+                <div style={{ position: 'absolute', bottom: '-25px', width: '100%', display: 'flex', justifyContent: 'space-between', color: '#666', fontSize: '0.8rem', fontFamily: "'Roboto Mono', monospace" }}>
+                    <span>Foundation</span>
+                    <span>Growth</span>
+                    <span>Mastery</span>
                 </div>
             </div>
         </section>

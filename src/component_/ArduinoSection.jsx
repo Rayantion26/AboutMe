@@ -30,7 +30,7 @@ const ArduinoSection = () => {
                     trigger: containerRef.current,
                     start: "top top",
                     end: isDesktop ? "+=800%" : "+=250%",
-                    scrub: 2,
+                    scrub: 0.5,
                     pin: true,
                     anticipatePin: 1
                 }

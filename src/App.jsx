@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import gsap from 'gsap';
 import Lenis from 'lenis';
 import FloatingLines from './FloatingLines';
+import Navbar from './component_/Navbar'; // Imported Navbar
 import About from './component_/About';
 import AudiophileSection from './component_/AudiophileSection';
 import CoffeeSection from './component_/CoffeeSection';
@@ -92,6 +93,11 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [areLinesVisible, setAreLinesVisible] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Cleaned Up: No more excessive state causing re-renders!
+  // const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  // const [lastScrollY, setLastScrollY] = useState(0);
+
   const floatingLinesContainerRef = useRef(null);
   const lenisRef = useRef(null);
   const navigate = useNavigate();
@@ -99,15 +105,19 @@ const Home = () => {
 
   // Initialize Lenis for smooth scrolling
   useEffect(() => {
+
+    // Reset scroll to top on mount
+    window.scrollTo(0, 0);
+
     const lenis = new Lenis({
-      duration: 0.8, // Very heavy friction to stop "slipping"
+      duration: 0.8, // Heavy friction
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
       gestureDirection: 'vertical',
       smooth: true,
-      mouseMultiplier: 0.19, // Increased speed 0.25x
+      mouseMultiplier: 0.1, // Reduced speed
       smoothTouch: false,
-      touchMultiplier: 0.5, // Increased speed 0.25x
+      touchMultiplier: 0.3, // Reduced speed
       infinite: false,
     });
     lenisRef.current = lenis;
@@ -118,7 +128,6 @@ const Home = () => {
     }
     requestAnimationFrame(raf);
 
-    // Handle incoming navigation from other pages (like back button)
     if (location.state?.targetSection) {
       setTimeout(() => {
         const element = document.getElementById(location.state.targetSection);
@@ -135,19 +144,20 @@ const Home = () => {
   }, [location]);
 
   const scrollToSection = (id) => {
-    setIsMenuOpen(false); // Close mobile menu if open
+    setIsMenuOpen(false);
     const element = document.getElementById(id);
     if (element && lenisRef.current) {
       lenisRef.current.scrollTo(element);
     }
   };
 
-  // Scroll opacity handling
+  // Scroll opacity logic ONLY (Performant DOM updates, no state spam)
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const windowHeight = window.innerHeight;
 
+      // Floating lines opacity
       const fadeStart = 0;
       const fadeEnd = windowHeight * 0.8;
       let newOpacity = 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart);
@@ -158,6 +168,7 @@ const Home = () => {
         floatingLinesContainerRef.current.style.pointerEvents = newOpacity > 0 ? 'auto' : 'none';
       }
 
+      // Only check state if it actually changes to prevent re-renders
       if (newOpacity <= 0 && areLinesVisible) {
         setAreLinesVisible(false);
       } else if (newOpacity > 0 && !areLinesVisible) {
@@ -165,75 +176,25 @@ const Home = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, [areLinesVisible]);
 
-  // Button Hover Effect
-  const handleBtnEnter = (e) => {
-    gsap.to(e.target, {
-      y: -3,
-      borderColor: '#fff',
-      boxShadow: '0 0 15px rgba(255, 255, 255, 0.5)',
-      duration: 0.3
-    });
-  };
-
-  const handleBtnLeave = (e) => {
-    gsap.to(e.target, {
-      y: 0,
-      borderColor: 'transparent',
-      boxShadow: 'none',
-      duration: 0.3
-    });
-  };
 
   return (
     <>
       {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
       <div className="content-wrapper">
-        <header className="top-bar">
-          {/* Hamburger Icon (Mobile Only) - replaces Logo location */}
-          <div
-            className="hamburger-icon"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            style={{ zIndex: 10002, cursor: 'pointer', display: 'none' }}
-          >
-            {isMenuOpen ? '✕' : '☰'}
-          </div>
 
-          <div
-            className="logo"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            style={{ cursor: 'pointer' }}
-          >
-            Home
-          </div>
-          <nav className="center-top desktop-nav">
-            {['about', 'projects', 'audiophile', 'skills', 'socials'].map((section) => (
-              <button
-                key={section}
-                onClick={() => scrollToSection(section)}
-                onMouseEnter={handleBtnEnter}
-                onMouseLeave={handleBtnLeave}
-                className="nav-link"
-                style={{
-                  border: '1px solid transparent',
-                  borderRadius: '20px',
-                  padding: '8px 16px'
-                }}
-              >
-                {section === 'audiophile' ? 'Interests' : section.charAt(0).toUpperCase() + section.slice(1)}
-              </button>
-            ))}
-          </nav>
-
-          <div className="date-location">Created<br />2025/11/21</div>
-        </header>
+        {/* Isolated Navbar Component */}
+        <Navbar
+          isMenuOpen={isMenuOpen}
+          setIsMenuOpen={setIsMenuOpen}
+          scrollToSection={scrollToSection}
+        />
 
         {/* Mobile Side Drawer + Backdrop */}
-        {/* Backdrop to close when clicking outside */}
         <div
           className={`mobile-menu-backdrop ${isMenuOpen ? 'open' : ''}`}
           onClick={() => setIsMenuOpen(false)}
@@ -242,6 +203,15 @@ const Home = () => {
         {/* The Sidebar itself */}
         <div className={`mobile-menu-sidebar ${isMenuOpen ? 'open' : ''}`}>
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '30px', textAlign: 'left', paddingLeft: '40px' }}>
+            {/* Mobile Home Link */}
+            <a
+              href="/"
+              className="mobile-nav-link"
+              style={{ textDecoration: 'none', color: '#fff' }}
+            >
+              Home
+            </a>
+
             {['about', 'projects', 'audiophile', 'skills', 'socials'].map((section) => (
               <button
                 key={section}
@@ -253,6 +223,7 @@ const Home = () => {
             ))}
           </nav>
         </div>
+
         <main className="center-content">
           <h1>Aaron Preston</h1>
           <h2>李宜倖</h2>

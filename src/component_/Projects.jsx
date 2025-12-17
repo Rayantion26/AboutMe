@@ -30,7 +30,7 @@ const Projects = () => {
                     trigger: containerRef.current,
                     start: "top top",
                     end: isDesktop ? "+=400%" : "+=200%",
-                    scrub: 2,
+                    scrub: 0.5,
                     pin: true,
                     anticipatePin: 1
                 }
