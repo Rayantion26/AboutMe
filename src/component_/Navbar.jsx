@@ -111,7 +111,7 @@ const Navbar = ({ lenis, isMenuOpen, setIsMenuOpen, scrollToSection, onHomeClick
             </a>
 
             <nav className="center-top desktop-nav">
-                {['about', 'projects', 'audiophile', 'skills', 'socials'].map((section) => (
+                {['about', 'projects', 'audiophile', 'skills', 'resume', 'fiveyears', 'socials'].map((section) => (
                     <button
                         key={section}
                         onClick={() => scrollToSection(section)}
@@ -124,7 +124,7 @@ const Navbar = ({ lenis, isMenuOpen, setIsMenuOpen, scrollToSection, onHomeClick
                             padding: '8px 16px'
                         }}
                     >
-                        {section === 'audiophile' ? 'Interests' : section.charAt(0).toUpperCase() + section.slice(1)}
+                        {section === 'audiophile' ? 'Interests' : section === 'fiveyears' ? '5 Years' : section.charAt(0).toUpperCase() + section.slice(1)}
                     </button>
                 ))}
             </nav>

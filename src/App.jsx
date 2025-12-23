@@ -12,6 +12,7 @@ import ArduinoSection from './component_/ArduinoSection';
 import Projects from './component_/Projects';
 import Skills from './component_/Skills';
 import ResumeSection from './component_/ResumeSection'; // Import
+import FiveYearsSection from './component_/FiveYearsSection';
 import Socials from './component_/Socials';
 import ArduinoProjectsPage from './component_/ArduinoProjectsPage';
 import CustomCursor from './component_/CustomCursor';
@@ -141,6 +142,12 @@ const Home = () => {
     gsap.ticker.add(updateLenis);
     gsap.ticker.lagSmoothing(0); // Disable lag smoothing for instant response
 
+    // Stop/Start Lenis based on loading state
+    if (lenisInstance) {
+      if (isLoading) lenisInstance.stop();
+      else lenisInstance.start();
+    }
+
     // --- Floating Lines Fade via GSAP ---
     if (floatingLinesContainerRef.current) {
       // 1. Visual Fade
@@ -181,6 +188,14 @@ const Home = () => {
       ScrollTrigger.getAll().forEach(t => t.kill()); // Cleanup triggers
     };
   }, [location]);
+
+  // Handle Scroll Locking during Loading
+  useEffect(() => {
+    if (lenis) {
+      if (isLoading) lenis.stop();
+      else lenis.start();
+    }
+  }, [lenis, isLoading]);
 
   const scrollToSection = (id) => {
     setIsMenuOpen(false);
@@ -247,13 +262,13 @@ const Home = () => {
             Home
           </a>
 
-          {['about', 'projects', 'audiophile', 'skills', 'resume', 'socials'].map((section) => (
+          {['about', 'projects', 'audiophile', 'skills', 'resume', 'fiveyears', 'socials'].map((section) => (
             <button
               key={section}
               onClick={() => scrollToSection(section)}
               className="mobile-nav-link"
             >
-              {section === 'audiophile' ? 'Interests' : section.charAt(0).toUpperCase() + section.slice(1)}
+              {section === 'audiophile' ? 'Interests' : section === 'fiveyears' ? '5 Years' : section.charAt(0).toUpperCase() + section.slice(1)}
             </button>
           ))}
         </nav>
@@ -308,6 +323,10 @@ const Home = () => {
 
       <div id="resume">
         <ResumeSection />
+      </div>
+
+      <div id="fiveyears">
+        <FiveYearsSection />
       </div>
 
       <div id="socials">

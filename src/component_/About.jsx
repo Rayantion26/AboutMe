@@ -24,11 +24,30 @@ const About = () => {
                 // Mobile Animations (Simple Fade Up)
                 gsap.fromTo(imageRef.current,
                     { opacity: 0, scale: 0.8 },
-                    { opacity: 1, scale: 1, duration: 1, scrollTrigger: { trigger: section, start: "top 80%" } }
+                    {
+                        opacity: 1,
+                        scale: 1,
+                        duration: 1,
+                        scrollTrigger: {
+                            trigger: section,
+                            start: "top 80%",
+                            toggleActions: "play none none reverse"
+                        }
+                    }
                 );
                 gsap.fromTo(textRef.current,
                     { opacity: 0, y: 30 },
-                    { opacity: 1, y: 0, duration: 1, delay: 0.3, scrollTrigger: { trigger: section, start: "top 80%" } }
+                    {
+                        opacity: 1,
+                        y: 0,
+                        duration: 1,
+                        delay: 0.3,
+                        scrollTrigger: {
+                            trigger: section,
+                            start: "top 80%",
+                            toggleActions: "play none none reverse"
+                        }
+                    }
                 );
             } else {
                 // Desktop Animations (Slide In)
@@ -36,14 +55,22 @@ const About = () => {
                     { x: -100, opacity: 0 },
                     {
                         x: 0, opacity: 1, duration: 1.2, ease: "power3.out",
-                        scrollTrigger: { trigger: section, start: "top 70%" }
+                        scrollTrigger: {
+                            trigger: section,
+                            start: "top 70%",
+                            toggleActions: "play none none reverse"
+                        }
                     }
                 );
                 gsap.fromTo(textRef.current,
                     { x: 100, opacity: 0 },
                     {
                         x: 0, opacity: 1, duration: 1.2, ease: "power3.out", delay: 0.2,
-                        scrollTrigger: { trigger: section, start: "top 70%" }
+                        scrollTrigger: {
+                            trigger: section,
+                            start: "top 70%",
+                            toggleActions: "play none none reverse"
+                        }
                     }
                 );
             }

@@ -704,6 +704,9 @@ const ArduinoProjectsPage = () => {
 
         lenis.scrollTo(0, { immediate: true });
 
+        // Initially stop if loading
+        if (isLoading) lenis.stop();
+
         function raf(time) {
             lenis.raf(time);
             requestAnimationFrame(raf);
@@ -716,6 +719,13 @@ const ArduinoProjectsPage = () => {
             lenis.destroy();
         };
     }, []);
+
+    // Unlock Scroll when Loading finishes
+    useEffect(() => {
+        if (!isLoading && lenisRef.current) {
+            lenisRef.current.start();
+        }
+    }, [isLoading]);
 
     // Helper method for fade out -> navigate
     const handleBack = () => {

@@ -16,6 +16,8 @@ const ArduinoSection = () => {
     const contentRightRef = useRef(null);
     const borderRef = useRef(null);
 
+    const [isNavigating, setIsNavigating] = React.useState(false);
+
     useEffect(() => {
         let mm = gsap.matchMedia();
 
@@ -129,7 +131,16 @@ const ArduinoSection = () => {
     };
 
     const handleClick = () => {
-        navigate('/arduino-projects');
+        // Trigger Navigation Transition
+        setIsNavigating(true);
+        gsap.to(".arduino-blackout-layer", {
+            opacity: 1,
+            duration: 0.8, // 0.8s fade to black
+            ease: "power2.inOut",
+            onComplete: () => {
+                navigate('/arduino-projects');
+            }
+        });
     };
 
     return (
@@ -144,6 +155,23 @@ const ArduinoSection = () => {
                 overflow: 'hidden'
             }}
         >
+            {/* Blackout Overlay for Transition */}
+            <div
+                className="arduino-blackout-layer"
+                style={{
+                    position: 'fixed', // Fixed to cover everything
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: '#000',
+                    zIndex: 9999,
+                    opacity: 0, // Starts invisible
+                    pointerEvents: isNavigating ? 'all' : 'none', // Only block interactions when active
+                    transition: 'none' // Handled by gsap
+                }}
+            ></div>
+
             <div
                 ref={centerTextRef}
                 style={{
