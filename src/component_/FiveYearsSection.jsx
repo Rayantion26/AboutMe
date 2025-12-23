@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import CodingTransition from './transition/CodingTransition';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -10,7 +9,7 @@ const FiveYearsSection = () => {
     const titleRef = useRef(null);
     const buttonRef = useRef(null);
     const codeBgRef = useRef(null);
-    const [isNavigating, setIsNavigating] = useState(false);
+    const fadeOverlayRef = useRef(null);
 
     useEffect(() => {
         // --- 1. Background "Code Rain" Effect (Simple CSS/JS version) ---
@@ -117,11 +116,19 @@ const FiveYearsSection = () => {
 
     const handleEnterSystem = (e) => {
         e.preventDefault();
-        setIsNavigating(true);
-    };
 
-    const handleAnimationComplete = () => {
-        window.location.href = '/5Years/';
+        // Disable interaction
+        if (buttonRef.current) buttonRef.current.style.pointerEvents = 'none';
+
+        // Fade Out
+        gsap.to(fadeOverlayRef.current, {
+            opacity: 1,
+            duration: 1,
+            ease: "power2.inOut",
+            onComplete: () => {
+                window.location.href = '/5Years/';
+            }
+        });
     };
 
     return (
@@ -142,7 +149,21 @@ const FiveYearsSection = () => {
                 padding: '50px 20px'
             }}
         >
-            {isNavigating && <CodingTransition onComplete={handleAnimationComplete} />}
+            {/* Fade Overlay */}
+            <div
+                ref={fadeOverlayRef}
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: '#000',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: 9999
+                }}
+            />
 
             {/* Background Code Layer */}
             <div ref={codeBgRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}></div>
