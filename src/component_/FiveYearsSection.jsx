@@ -189,7 +189,7 @@ const FiveYearsSection = () => {
             </h2>
 
             <p style={{
-                color: '#aaa',
+                color: window.innerWidth < 800 ? '#fff' : '#aaa',
                 fontFamily: "'Courier New', Courier, monospace",
                 fontSize: '1rem',
                 marginBottom: '40px',

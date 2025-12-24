@@ -320,7 +320,7 @@ const Projects = () => {
                     fontSize: 'clamp(0.85rem, 2vw, 1.2rem)',
                     lineHeight: '1.5',
                     fontWeight: '300',
-                    color: '#ccc',
+                    color: window.innerWidth < 800 ? '#fff' : '#ccc',
                     marginBottom: '20px'
                 }}>
                     An intelligent automation bot built with n8n that processes receipts and integrates directly with LINE messenger.

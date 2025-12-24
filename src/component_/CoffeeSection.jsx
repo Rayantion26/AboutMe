@@ -446,7 +446,7 @@ const CoffeeSection = () => {
                 <div style={{ width: '60px', height: '4px', backgroundColor: '#C4A484', marginBottom: '30px', display: 'inline-block' }}></div>
                 <p style={{
                     fontFamily: "'Roboto', sans-serif", fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-                    lineHeight: '1.7', fontWeight: '300', color: '#ccc'
+                    lineHeight: '1.7', fontWeight: '300', color: window.innerWidth < 800 ? '#fff' : '#ccc'
                 }}>
                     It's more than just caffeine; it's a daily ritual of patience and precision. From dialing in the grind size to perfecting the pour-over technique, I love the process of extracting complex flavors from a simple bean.
                 </p>

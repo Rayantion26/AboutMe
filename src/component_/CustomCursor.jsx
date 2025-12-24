@@ -28,6 +28,33 @@ const CustomCursor = () => {
     useEffect(() => {
         // --- 1. SETUP & MOVEMENT ---
 
+        // Mobile Visibility Logic
+        let isMobile = window.matchMedia("(max-width: 799px)").matches;
+        let mobileHideTimer = null;
+
+        // Initial State for Mobile
+        if (isMobile) {
+            if (mainCursor.current) gsap.set(mainCursor.current, { opacity: 0 });
+            if (trailerCursor.current) gsap.set(trailerCursor.current, { opacity: 0 });
+        }
+
+        const showCursorMobile = () => {
+            if (!isMobile) return;
+            if (mobileHideTimer) clearTimeout(mobileHideTimer);
+
+            // Show instantly
+            if (mainCursor.current) gsap.to(mainCursor.current, { opacity: 1, duration: 0.1, overwrite: 'auto' });
+            if (trailerCursor.current) gsap.to(trailerCursor.current, { opacity: 1, duration: 0.1, overwrite: 'auto' });
+        };
+
+        const hideCursorMobile = () => {
+            if (!isMobile) return;
+            mobileHideTimer = setTimeout(() => {
+                if (mainCursor.current) gsap.to(mainCursor.current, { opacity: 0, duration: 0.3 });
+                if (trailerCursor.current) gsap.to(trailerCursor.current, { opacity: 0, duration: 0.3 });
+            }, 500);
+        };
+
         const onMouseMove = (e) => {
             mouse.current = { x: e.clientX, y: e.clientY };
 
@@ -40,7 +67,19 @@ const CustomCursor = () => {
             }
         };
 
+        // Touch handling for mobile cursor visibility
+        const onTouchStart = () => {
+            isMobile = window.matchMedia("(max-width: 799px)").matches; // Re-check
+            if (isMobile) showCursorMobile();
+        };
+        const onTouchEnd = () => {
+            if (isMobile) hideCursorMobile();
+        };
+
         window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('touchstart', onTouchStart, { passive: true });
+        window.addEventListener('touchend', onTouchEnd, { passive: true });
+        window.addEventListener('touchmove', showCursorMobile, { passive: true }); // Keep showing while moving
 
         // --- 2. TRAILER PHYSICS LOOP ---
         // const currentScale = useRef(0.2); // Start small matches core size (8px / 40px = 0.2)
@@ -157,6 +196,8 @@ const CustomCursor = () => {
         // Force reset cursor when navigating
         const resetCursor = () => {
             isHovering.current = false;
+            // IMPORTANT: Don't force opacity here for mobile, let the touch logic handle it?
+            // Actually, we want to ensure properties reset.
             if (trailerCursor.current) {
                 gsap.to(trailerCursor.current, {
                     backgroundColor: 'transparent',
@@ -203,9 +244,13 @@ const CustomCursor = () => {
 
         return () => {
             window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('touchstart', onTouchStart);
+            window.removeEventListener('touchend', onTouchEnd);
+            window.removeEventListener('touchmove', showCursorMobile);
             document.removeEventListener('mouseover', onMouseOver, true);
             document.removeEventListener('mouseout', onMouseOut, true);
             cancelAnimationFrame(ticker);
+            if (mobileHideTimer) clearTimeout(mobileHideTimer);
         };
     }, []);
 

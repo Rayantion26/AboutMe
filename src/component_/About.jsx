@@ -178,7 +178,7 @@ const About = () => {
                     <p style={{
                         fontSize: 'clamp(1rem, 2vw, 1.2rem)',
                         lineHeight: '1.6',
-                        color: '#ccc',
+                        color: window.innerWidth < 800 ? '#fff' : '#ccc',
                         fontFamily: "'Inter', sans-serif",
                         marginBottom: '20px'
                     }}>
@@ -187,7 +187,7 @@ const About = () => {
                     <p style={{
                         fontSize: 'clamp(1rem, 2vw, 1.2rem)',
                         lineHeight: '1.6',
-                        color: '#ccc',
+                        color: window.innerWidth < 800 ? '#fff' : '#ccc',
                         fontFamily: "'Inter', sans-serif"
                     }}>
                         Whether it's tinkering with Arduino or automating workflows with n8n, I dive into these tools simply because I love them. Ultimately, technology isn't just what I do; it has grown on me to become a fundamental part of who I am.

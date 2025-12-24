@@ -278,7 +278,7 @@ const ArduinoSection = () => {
                     fontSize: 'clamp(0.85rem, 2vw, 1.2rem)',
                     lineHeight: '1.5',
                     fontWeight: '300',
-                    color: '#ccc',
+                    color: window.innerWidth < 800 ? '#fff' : '#ccc',
                     marginBottom: '20px'
                 }}>
                     Specializing in embedded systems and automated solutions. From autonomous line-following robots to RFID parking complexes,
