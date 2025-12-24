@@ -280,6 +280,7 @@ const CoffeeSection = () => {
                 onMouseEnter={() => setHoveringSquircle(true)}
                 onMouseLeave={() => setHoveringSquircle(false)}
                 onClick={() => {
+                    if (window.lenis) window.lenis.stop(); // Immediate stop
                     const newState = { lightboxOpen: true };
                     window.history.pushState(newState, "", "");
                     setIsLightboxOpen(true);
@@ -479,15 +480,24 @@ const Lightbox = ({ mediaList, startIndex, onClose }) => {
         document.body.style.overflow = 'hidden';
         if (window.lenis) window.lenis.stop();
 
+        // Push state if not already handled by parent (Parent does push state, but we can reinforce or verify)
+        // Actually parent does: window.history.pushState(newState, "", "");
+        // So we just listen.
+
         const handlePopState = (event) => {
             // If we get a popstate event (Back button), we just close.
             // The state is already popped by the browser.
-            onClose(false); // Pass false to skip history.back()
+            /* 
+               CRITICAL: When the back button is pressed on mobile or desktop, 
+               the browser pops the state. We simply need to clean up the UI.
+               We pass 'false' to onClose to tell it NOT to call history.back() again.
+            */
+            onClose(false);
         };
 
         const handleKeyDown = (event) => {
             if (event.key === 'Escape') {
-                onClose(true); // Go back in history
+                onClose(true); // Go back in history manually
             }
         };
 

@@ -127,6 +127,74 @@ const Projects = () => {
         return () => mm.revert();
     }, []);
 
+    const modalRef = useRef(null); // Ref for GSAP animation
+
+    // Handle Scroll Lock
+    useEffect(() => {
+        if (showQR) {
+            document.body.style.overflow = 'hidden';
+            if (window.lenis) window.lenis.stop();
+        } else {
+            document.body.style.overflow = '';
+            if (window.lenis) window.lenis.start();
+        }
+    }, [showQR]);
+
+    // Animate In when mounted
+    useEffect(() => {
+        if (showQR) {
+            // Push history state when opening
+            window.history.pushState({ modal: 'qr' }, '', '');
+
+            if (modalRef.current) {
+                gsap.fromTo(modalRef.current,
+                    { opacity: 0 },
+                    { opacity: 1, duration: 0.5, ease: "power2.out" }
+                );
+            }
+
+            // Handle Back Button (Popstate)
+            const handlePopState = () => {
+                // If back button pressed, just close the modal (don't go back again)
+                handleCloseQR(false);
+            };
+
+            window.addEventListener('popstate', handlePopState);
+
+            return () => {
+                window.removeEventListener('popstate', handlePopState);
+            };
+        }
+    }, [showQR]);
+
+    const handleCloseQR = (navigateBack = true) => {
+        if (modalRef.current) {
+            gsap.to(modalRef.current, {
+                opacity: 0,
+                duration: 0.5,
+                ease: "power2.in",
+                onComplete: () => {
+                    setShowQR(false);
+                    if (navigateBack) {
+                        try {
+                            // Only go back if we are the ones who pushed the state
+                            // Simply checking if state is ours or just calling back() can be tricky if user did multiple things.
+                            // But for a simple modal, back() is the standard "close manual" action if we pushed state.
+                            // However, to be safe, if we pushed state, we should go back.
+                            // If this was triggered by popstate, navigateBack should be false.
+                            window.history.back();
+                        } catch (e) {
+                            console.log("Navigation error", e);
+                        }
+                    }
+                }
+            });
+        } else {
+            setShowQR(false);
+            if (navigateBack) window.history.back();
+        }
+    };
+
     const handleMouseEnter = () => {
         gsap.to(imageRef.current, { scale: 1, duration: 0.5, ease: "power2.out" });
     };
@@ -265,7 +333,10 @@ const Projects = () => {
                     <span style={{ padding: '6px 15px', backgroundColor: '#222', borderRadius: '15px', fontSize: '0.75rem', color: '#fff' }}>OCR</span>
                 </div>
                 <button
-                    onClick={() => setShowQR(true)}
+                    onClick={() => {
+                        if (window.lenis) window.lenis.stop(); // Immediate stop to prevent drift
+                        setShowQR(true);
+                    }}
                     onMouseEnter={(e) => gsap.to(e.currentTarget, { boxShadow: '0 0 20px #ff6b6b', borderColor: '#ff6b6b', color: '#ff6b6b', scale: 1.05, duration: 0.3 })}
                     onMouseLeave={(e) => gsap.to(e.currentTarget, { boxShadow: '0 0 0px transparent', borderColor: 'rgba(255, 255, 255, 0.3)', color: '#fff', scale: 1, duration: 0.3 })}
                     style={{
@@ -289,6 +360,7 @@ const Projects = () => {
             {/* QR Code Modal */}
             {showQR && (
                 <div
+                    ref={modalRef}
                     style={{
                         position: 'fixed',
                         top: 0,
@@ -300,10 +372,9 @@ const Projects = () => {
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        opacity: 0,
-                        animation: 'fadeIn 0.5s forwards'
+                        opacity: 0, // GSAP will handle opacity 0 -> 1
                     }}
-                    onClick={() => setShowQR(false)}
+                    onClick={() => handleCloseQR(true)}
                 >
                     <div
                         style={{
@@ -316,7 +387,9 @@ const Projects = () => {
                             border: '1px solid #333',
                             borderRadius: '20px',
                             overflow: 'hidden',
-                            boxShadow: '0 0 50px rgba(255, 107, 107, 0.2)'
+                            boxShadow: '0 0 50px rgba(255, 107, 107, 0.2)',
+                            // Removed transforms to simplify GSAP logic, or we can add them back in 'fromTo' if desired.
+                            // But opacity fade is the requested feature.
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -375,7 +448,7 @@ const Projects = () => {
                             </div>
 
                             <button
-                                onClick={() => setShowQR(false)}
+                                onClick={() => handleCloseQR(true)}
                                 style={{
                                     marginTop: '30px',
                                     padding: '10px 20px',
@@ -393,11 +466,6 @@ const Projects = () => {
                     </div>
                 </div>
             )}
-            <style>{`
-                @keyframes fadeIn {
-                    to { opacity: 1; }
-                }
-            `}</style>
         </section>
     );
 };

@@ -37,8 +37,6 @@ const SectionTitlePage = ({ title }) => {
 
   const handleMouseEnter = () => {
     gsap.to(textRef.current, {
-      color: 'transparent',
-      webkitTextStroke: '2px #fff',
       textShadow: '0 0 40px rgba(255, 255, 255, 0.8)',
       scale: 1.05,
       duration: 0.3
@@ -47,8 +45,6 @@ const SectionTitlePage = ({ title }) => {
 
   const handleMouseLeave = () => {
     gsap.to(textRef.current, {
-      color: '#fff',
-      webkitTextStroke: '0px transparent',
       textShadow: '0 0 30px rgba(255,255,255,0.1)',
       scale: 1,
       duration: 0.3
