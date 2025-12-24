@@ -20,6 +20,7 @@ import LoadingScreen from './component_/LoadingScreen';
 import './App.css';
 
 gsap.registerPlugin(ScrollTrigger);
+gsap.ticker.fps(60);
 
 const SectionTitlePage = ({ title }) => {
   const textRef = useRef(null);

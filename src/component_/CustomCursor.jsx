@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import gsap from 'gsap';
 import '../App.css';
 
+gsap.ticker.fps(60);
+
 const CustomCursor = () => {
     const mainCursor = useRef(null);
     const trailerCursor = useRef(null);
