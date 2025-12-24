@@ -25,6 +25,11 @@ const CustomCursor = () => {
     // Color cycle ref
     const colorObj = useRef({ hue: 0 });
 
+    // Ref for tracking if we are currently scrolling
+    const isScrolling = useRef(false);
+    // Ref for the show timeout
+    const showTimeout = useRef(null);
+
     useEffect(() => {
         // --- 1. SETUP & MOVEMENT ---
 
@@ -41,6 +46,7 @@ const CustomCursor = () => {
         const showCursorMobile = () => {
             if (!isMobile) return;
             if (mobileHideTimer) clearTimeout(mobileHideTimer);
+            if (showTimeout.current) clearTimeout(showTimeout.current);
 
             // Show instantly
             if (mainCursor.current) gsap.to(mainCursor.current, { opacity: 1, duration: 0.1, overwrite: 'auto' });
@@ -53,6 +59,16 @@ const CustomCursor = () => {
                 if (mainCursor.current) gsap.to(mainCursor.current, { opacity: 0, duration: 0.3 });
                 if (trailerCursor.current) gsap.to(trailerCursor.current, { opacity: 0, duration: 0.3 });
             }, 500);
+        };
+
+        const hideCursorMobileInstant = () => {
+            if (!isMobile) return;
+            if (mobileHideTimer) clearTimeout(mobileHideTimer);
+            if (showTimeout.current) clearTimeout(showTimeout.current);
+
+            // Hide instantly with overwrite to stop any showing animation
+            if (mainCursor.current) gsap.to(mainCursor.current, { opacity: 0, duration: 0.1, overwrite: 'auto' });
+            if (trailerCursor.current) gsap.to(trailerCursor.current, { opacity: 0, duration: 0.1, overwrite: 'auto' });
         };
 
         const onMouseMove = (e) => {
@@ -68,23 +84,72 @@ const CustomCursor = () => {
         };
 
         // Touch handling for mobile cursor visibility
-        const onTouchStart = () => {
-            isMobile = window.matchMedia("(max-width: 799px)").matches; // Re-check
-            if (isMobile) showCursorMobile();
+        const onTouchStart = (e) => {
+            isMobile = window.matchMedia("(max-width: 799px)").matches;
+            if (isMobile) {
+                isScrolling.current = false; // Reset scroll state
+                if (showTimeout.current) clearTimeout(showTimeout.current);
+
+                // Update position immediately on touch so it's ready
+                if (e.touches && e.touches.length > 0) {
+                    mouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    if (mainCursor.current) {
+                        gsap.set(mainCursor.current, { x: e.touches[0].clientX, y: e.touches[0].clientY });
+                    }
+                    pos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    if (trailerCursor.current) {
+                        gsap.set(trailerCursor.current, { x: e.touches[0].clientX, y: e.touches[0].clientY });
+                    }
+                }
+
+                // DELAY showing the cursor. If user moves finger (scrolls) before this fires, we cancel it.
+                showTimeout.current = setTimeout(() => {
+                    if (!isScrolling.current) {
+                        showCursorMobile();
+                    }
+                }, 150); // 150ms delay
+            }
         };
+
+        const onTouchMove = () => {
+            // If scrolling/moving on mobile
+            if (isMobile) {
+                isScrolling.current = true;
+                // Hide instantly and cancel any pending show
+                hideCursorMobileInstant();
+            }
+        };
+
         const onTouchEnd = () => {
-            if (isMobile) hideCursorMobile();
+            if (!isMobile) return;
+
+            // If we tapped quickly (before timeout fired) and DID NOT scroll, show it now
+            if (!isScrolling.current) {
+                // If the timer is still running, it means we tapped fast. Show feedback.
+                showCursorMobile();
+            }
+
+            // Then schedule fade out
+            hideCursorMobile();
         };
 
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('touchstart', onTouchStart, { passive: true });
         window.addEventListener('touchend', onTouchEnd, { passive: true });
-        window.addEventListener('touchmove', showCursorMobile, { passive: true }); // Keep showing while moving
+        window.addEventListener('touchmove', onTouchMove, { passive: true }); // Hide on move
 
         // --- 2. TRAILER PHYSICS LOOP ---
         // const currentScale = useRef(0.2); // Start small matches core size (8px / 40px = 0.2)
-
         const updateTrailer = () => {
+            // ... (rest is same, but careful not to break the loop)
+            // Wait, I am replacing the useEffect body partly.
+            // I should use replace_file_content carefully.
+            // I will return the ticker logic here too as I need to keep the file valid.
+
+            // Re-pasting the loop logic is risky if I don't need to change it.
+            // But I needed to change the addEventListener part which is intertwined.
+            // Actually, I can just replace the event listener block.
+
             // Lerp position
             const dt = 1.0 - Math.pow(1.0 - VELOCITY, gsap.ticker.deltaRatio());
 
@@ -246,11 +311,12 @@ const CustomCursor = () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('touchstart', onTouchStart);
             window.removeEventListener('touchend', onTouchEnd);
-            window.removeEventListener('touchmove', showCursorMobile);
+            window.removeEventListener('touchmove', onTouchMove);
             document.removeEventListener('mouseover', onMouseOver, true);
             document.removeEventListener('mouseout', onMouseOut, true);
             cancelAnimationFrame(ticker);
             if (mobileHideTimer) clearTimeout(mobileHideTimer);
+            if (showTimeout.current) clearTimeout(showTimeout.current);
         };
     }, []);
 

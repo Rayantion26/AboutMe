@@ -181,7 +181,7 @@ const Home = () => {
     return () => {
       lenisInstance.destroy();
       gsap.ticker.remove(updateLenis);
-      ScrollTrigger.getAll().forEach(t => t.kill()); // Cleanup triggers
+      // ScrollTrigger.getAll().forEach(t => t.kill()); // REMOVED: This kills triggers of the NEXT page too if they mount fast.
     };
   }, [location]);
 
