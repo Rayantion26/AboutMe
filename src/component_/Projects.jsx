@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import n8nImage from '../assets/N8NImage.jpg';
@@ -358,7 +359,8 @@ const Projects = () => {
             </div>
 
             {/* QR Code Modal */}
-            {showQR && (
+            {/* QR Code Modal - Moved to Portal for true fixed positioning */}
+            {showQR && ReactDOM.createPortal(
                 <div
                     ref={modalRef}
                     style={{
@@ -368,7 +370,7 @@ const Projects = () => {
                         width: '100vw',
                         height: '100vh',
                         backgroundColor: 'rgba(0,0,0,0.9)',
-                        zIndex: 1000,
+                        zIndex: 99999, // High z-index to ensure it's on top
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
@@ -380,34 +382,33 @@ const Projects = () => {
                         style={{
                             display: 'flex',
                             flexDirection: window.innerWidth < 800 ? 'column' : 'row',
-                            width: '80%',
+                            width: window.innerWidth < 800 ? '90%' : '80%',
                             maxWidth: '1000px',
-                            maxHeight: '90vh',
+                            maxHeight: window.innerWidth < 800 ? '85vh' : '90vh',
                             backgroundColor: '#111',
                             border: '1px solid #333',
                             borderRadius: '20px',
                             overflow: 'hidden',
                             boxShadow: '0 0 50px rgba(255, 107, 107, 0.2)',
-                            // Removed transforms to simplify GSAP logic, or we can add them back in 'fromTo' if desired.
-                            // But opacity fade is the requested feature.
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* QR Image Section */}
                         <div style={{
-                            flex: 1,
+                            flex: window.innerWidth < 800 ? '0 0 auto' : '1',
+                            height: window.innerWidth < 800 ? '220px' : 'auto',
                             backgroundColor: '#fff',
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            padding: '20px'
+                            padding: window.innerWidth < 800 ? '10px' : '20px'
                         }}>
                             <img
                                 src={rrBotQR}
                                 alt="RR Bot QR Code"
                                 style={{
                                     maxWidth: '100%',
-                                    maxHeight: '400px',
+                                    maxHeight: '100%',
                                     objectFit: 'contain'
                                 }}
                             />
@@ -415,30 +416,39 @@ const Projects = () => {
 
                         {/* Text / Commands Section */}
                         <div style={{
-                            flex: 1.2,
-                            padding: '40px',
+                            flex: window.innerWidth < 800 ? '1 1 auto' : '1.2',
+                            padding: window.innerWidth < 800 ? '20px' : '40px',
                             color: '#fff',
-                            overflowY: 'auto'
+                            overflowY: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column'
                         }}>
                             <h2 style={{
                                 fontFamily: "'Montserrat', sans-serif",
-                                fontSize: '2rem',
+                                fontSize: window.innerWidth < 800 ? '1.5rem' : '2rem',
                                 color: '#ff6b6b',
-                                marginBottom: '20px'
+                                marginBottom: window.innerWidth < 800 ? '10px' : '20px',
+                                marginTop: 0
                             }}>
                                 RR BOT COMMANDS
                             </h2>
-                            <p style={{ fontFamily: "'Roboto', sans-serif", color: '#ccc', marginBottom: '30px', lineHeight: '1.6' }}>
+                            <p style={{
+                                fontFamily: "'Roboto', sans-serif",
+                                color: '#ccc',
+                                marginBottom: window.innerWidth < 800 ? '15px' : '30px',
+                                lineHeight: '1.6',
+                                fontSize: window.innerWidth < 800 ? '0.9rem' : '1rem'
+                            }}>
                                 Creating a new file on RR Bot needs a 2FA Code, so if you really want a personal file, <strong>CONTACT ME!!</strong><br />
                                 Since this is testing only, you can use file name <code>"purchasetest"</code> as a reference. Enjoy!!
                             </p>
 
                             <div style={{
                                 backgroundColor: '#222',
-                                padding: '20px',
+                                padding: window.innerWidth < 800 ? '15px' : '20px',
                                 borderRadius: '10px',
                                 fontFamily: "'Roboto Mono', monospace",
-                                fontSize: '0.9rem',
+                                fontSize: window.innerWidth < 800 ? '0.8rem' : '0.9rem',
                                 borderLeft: '4px solid #ff6b6b'
                             }}>
                                 <div style={{ marginBottom: '10px' }}><span style={{ color: '#ff6b6b' }}>/help</span> - For help</div>
@@ -447,24 +457,27 @@ const Projects = () => {
                                 <div><span style={{ color: '#ff6b6b' }}>/create</span> (file name) (2FA Code) - For creating file</div>
                             </div>
 
-                            <button
-                                onClick={() => handleCloseQR(true)}
-                                style={{
-                                    marginTop: '30px',
-                                    padding: '10px 20px',
-                                    backgroundColor: 'transparent',
-                                    border: '1px solid #555',
-                                    color: '#888',
-                                    borderRadius: '5px',
-                                    cursor: 'pointer',
-                                    fontFamily: "'Roboto', sans-serif"
-                                }}
-                            >
-                                Close
-                            </button>
+                            <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
+                                <button
+                                    onClick={() => handleCloseQR(true)}
+                                    style={{
+                                        padding: '10px 20px',
+                                        backgroundColor: 'transparent',
+                                        border: '1px solid #555',
+                                        color: '#888',
+                                        borderRadius: '5px',
+                                        cursor: 'pointer',
+                                        fontFamily: "'Roboto', sans-serif",
+                                        width: window.innerWidth < 800 ? '100%' : 'auto'
+                                    }}
+                                >
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </section>
     );

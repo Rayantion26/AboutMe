@@ -60,7 +60,7 @@ const CustomCursor = () => {
             mobileHideTimer = setTimeout(() => {
                 if (mainCursor.current) gsap.to(mainCursor.current, { opacity: 0, duration: 0.3 });
                 if (trailerCursor.current) gsap.to(trailerCursor.current, { opacity: 0, duration: 0.3 });
-            }, 500);
+            }, 250);
         };
 
         const hideCursorMobileInstant = () => {
