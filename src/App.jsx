@@ -169,22 +169,27 @@ const Home = () => {
       });
     }
 
-    if (location.state?.targetSection) {
-      setTimeout(() => {
-        const element = document.getElementById(location.state.targetSection);
-        if (element) {
-          lenisInstance.scrollTo(element, { immediate: true });
-          window.history.replaceState({}, document.title);
-        }
-      }, 100);
-    }
-
     return () => {
       lenisInstance.destroy();
       gsap.ticker.remove(updateLenis);
-      // ScrollTrigger.getAll().forEach(t => t.kill()); // REMOVED: This kills triggers of the NEXT page too if they mount fast.
     };
-  }, [location]);
+  }, []); // Run ONLY on mount. setLenis and location changes should not trigger re-init.
+
+  // Handle Scroll to Target Section from Navigation (Behind Loading Screen)
+  useEffect(() => {
+    if (location.state?.targetSection && lenis) {
+      const element = document.getElementById(location.state.targetSection);
+      if (element) {
+        // Immediate jump behind loading screen
+        lenis.scrollTo(element, {
+          immediate: true,
+          force: true
+        });
+        // Clear state so it doesn't jump again on refresh
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [lenis, location.state, isLoading]); // Keep same size (3) as previous version to appease React during HMR
 
   // Handle Scroll Locking during Loading
   useEffect(() => {
